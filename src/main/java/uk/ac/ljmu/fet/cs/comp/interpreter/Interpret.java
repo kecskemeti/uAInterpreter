@@ -171,7 +171,7 @@ public class Interpret {
 		}
 	}
 
-	static enum Operation {
+	public static enum Operation {
 		LD {
 			@Override
 			public void run(ParSet p) {
