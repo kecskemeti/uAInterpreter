@@ -25,19 +25,19 @@
 
 entry:
 MVR A,A
-READINPUT:
+readinput:
 LDC 2000,A
 ; CHECK IF IT IS DIFFERENT THAN BEFORE
 MVR A,C
 MLC -1,C
 MVR B,D
 ADR C,D
-JZC CHANGE,D
-JMC READINPUT
-CHANGE:
+JZC change,D
+JMC readinput
+change:
 ; PRINTOUT
 STC 0,A
 MVR A,B
-JMC READINPUT
+JMC readinput
 exit:
 JMC exit
