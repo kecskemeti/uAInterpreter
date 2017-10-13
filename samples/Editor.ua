@@ -48,10 +48,18 @@
 ; 25003 register D is saved here by functions
 
 CONST cursorShape -/|\
-CONNR delay 100000
+; 300000
+CONNR delay 300000
 
 
 entry:
+; Setup the initial cursorshape
+MVC cursorShape,A
+STC 20003,A
+MVC 10000,A
+STC 20000,A
+
+mainLoop:
 MVR A,B
 LDC 2000,A
 ; CHECK IF IT IS DIFFERENT THAN BEFORE
@@ -118,14 +126,16 @@ LDC 20003,B
 LDR B,A
 ; change shape
 ADC 1,B
-LDC cursorShape,C
+STC 20003,B
+; check if the change needs a reset
+MVC cursorShape,C
 ; 4= len of cursorShape
 ADC 4,C
 MLC -1,C
 ADR C,B
 JZC updateCursorView,B
 ; We reached the last cursor symbol, we reset the location
-LDC cursorShape,C
+MVC cursorShape,C
 STC 20003,C
 updateCursorView:
 ; We expect A to contain what to show on location
@@ -152,4 +162,4 @@ MVR A,A
 JZC indelay, A
 ; restore the original contents of A
 LDC 25000,A
-JMC entry
+JMC mainLoop
