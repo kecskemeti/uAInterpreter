@@ -47,6 +47,13 @@
 ; 25002 register C is saved here by functions
 ; 25003 register D is saved here by functions
 
+; Relevant keycodes:
+; Enter: 10
+; Left arrow: 37
+; Up arrow: 38
+; Right arrow: 39
+; Down arrow: 40
+
 CONST cursorShape -/|\
 ; 300000
 CONNR delay 300000
@@ -61,6 +68,7 @@ STC 20000,A
 
 mainLoop:
 MVR A,B
+; A has the new value read from the keyboard, we must keep it that way
 LDC 2000,A
 ; CHECK IF IT IS DIFFERENT THAN BEFORE
 MVR A,C
@@ -69,6 +77,71 @@ ADR C,B
 JZC change,B
 JMC visualiseCursor
 change:
+MVR A,B
+ADC -10,B
+JZC notEnter, B
+; Enter was hit
+; Query our location
+LDC 20001, B
+DVC 80,B
+; Increase the linecount
+ADC 1,B
+MLC 80,B
+STC 20001, B
+JMC checkLocationValidity
+notEnter:
+ADC -27,B
+JZC notLeftArrow,B
+; Left arrow was hit
+LDC 20001, B
+ADC -1,B
+STC 20001, B
+MVR B,C
+ADC 1,B
+DVC 80,B
+MLC -80,B
+ADR B,C
+JZC visualiseCursor,C
+;Reached the left side, move back cursor where it was
+LDC 20001,B
+ADC 1,B
+STC 20001,B
+JMC visauliseCursor
+notLeftArrow:
+ADC -1,B
+JZC notUpArrow,B
+; Up arrow was hit
+LDC 20001, B
+ADC -80,B
+STC 20001, B
+JMC checkLocationValidity
+notUpArrow:
+ADC -1,B
+JZC notRightArrow,B
+; Right arrow was hit
+LDC 20001, B
+ADC 1,B
+STC 20001, B
+MVR B,C
+ADC -1,B
+DVC 80,B
+MLC -80,B
+ADR B,C
+JZC visualiseCursor,C
+;Reached the right side, move back cursor where it was
+LDC 20001,B
+ADC -1,B
+STC 20001,B
+JMC visualiseCursor
+notRightArrow:
+ADC -1,B
+JZC notDownArrow,B
+; Down arrow was hit
+notDownArrow:
+LDC 20001, B
+ADC 80,B
+STC 20001, B
+JMC checkLocationValidity
 ; Print to screen
 LDC 20001,B
 STR B,A
@@ -93,6 +166,28 @@ STC 20001,B
 JMC visualiseCursor
 exit:
 JMC exit
+
+checkLocationValidity:
+LDC 20001,B
+; check if we are over 2000
+MVR B,C
+DVC 2000,C
+JZC bigerThan,C
+;was it positve?
+MVR B,C
+ADC 2000,C
+DVC 2000,C
+JZC visualiseCursor,C
+; No it was not, we need to scroll up a line 
+biggerThan:
+; We need to scroll down a line
+
+repaintbuffer:
+LDC 20000,B
+MVC 2000,D
+LDR B,C
+;; WIP
+
 
 ; shows the cursor at the current location
 ; uses registers A,B,C
