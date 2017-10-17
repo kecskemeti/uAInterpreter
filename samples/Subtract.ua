@@ -24,6 +24,12 @@
 ; Substracts two 1 digit numbers as if they were scanned from the keyboard 
 ; Then prints the result on the top left corner of the screen 
 
+; This sample shows features like:
+; 1. Load numbers as text from memory (i.e., this could be the location a
+;       where a keyboard scanner puts its results)
+; 2. Convert single digit numbers from text to/form binary (e.g., ADC -48,A)
+; 3. Print a single digit number to the top left corner (STC 0,A)
+
 CONST in1 8
 CONST in2 3 
 entry:

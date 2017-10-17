@@ -23,6 +23,12 @@
 
 ; Constantly scans for user input and puts it on the top left corner of the screen
 
+; This sample shows features like:
+; 1. Infinite loops
+; 2. Subtraction with the help of multiplication (see MLC -1,C)
+; 3. Reading from the keyboard
+; 4. Mirroring keyboard input on the screen's top left corner (STC 0,A)
+
 entry:
 MVR A,A
 readinput:

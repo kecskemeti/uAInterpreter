@@ -23,6 +23,29 @@
 
 ;An infinite scroller on the first line with asterisks
 
+; This sample shows features like:
+; 1. Creating busy waiting based delays for a somewhat precise timing.
+;	     This enables us to have behaviour linked to the passing of time.
+; 2. How to handle variables stored in memory
+;        We use the memory address 10000 for our first variable 
+;          - this will be used to see where should we put the asterisk next
+;               -  1 = to the right of the current pos
+;               - -1 = to the left of the current pos
+; 3. Setting up the initial conditions, and initialising our variables.
+;        See actions directly following the "entry" label.
+; 4. How to check if a value is negative or positive 
+;        See the operations around the label "posDir".
+; 5. How to ensure the key information is kept unchanged while doing other 
+;        functions:
+;          - Register D is the location of the asterisk, and is not used for
+;                any other purpose. From a higher level language's perspective
+;                this would mean a variable (e.g., called "location") was 
+;                pinned to a register. Notice that changes on D are only done
+;                in setup and repaint phases.
+;          - The other variable of ours (direction) does not have its own
+;                register, it is constantly saved and loaded from memory.
+;                See operations like LDC/STC 10000,x .
+
 CONNR delay 100000
 entry:
 ; Setup

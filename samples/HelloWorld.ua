@@ -25,6 +25,15 @@
 ; One can vary the location of the printout by setting the memory
 ;   locations of 10001 and 10001 (for x and y coordinates respectively)
 
+; This sample shows features like:
+; 1. Function calls with parameter passing through the memory
+; 2. Return from a function call to the part of the program pointed
+;         to in a given memory location
+; 3. Zero terminated string handling (i.e, tell the end of the string
+;         by seeing a character with the ASCII code 0)
+;    3a) see the line with JZC loop,A (which checks if A is 0 or not)
+; 4. Calculating position on the screen (see: MLC 80,D and ADR D,C)
+
 CONST mystr Hello world!
 entry:
 ; setting up the parameters for printat
