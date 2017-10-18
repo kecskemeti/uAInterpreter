@@ -21,6 +21,7 @@
  *  (C) Copyright 2017, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
+
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -36,16 +37,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 public class Interpret {
-	public static final int screenWidth = 80;
-	public static final int screenHeight = 25;
-	public static final int constantsStart = 30000;
-	public static final int keyboardInput = 2000;
-
 	public static final HashMap<String, Integer> constMap = new HashMap<>();
 	public static final HashMap<String, Step> labels = new HashMap<>();
 	public static final HashMap<Integer, Step> theProgram = new HashMap<>();
-	private static JLabel[][] screen = new JLabel[screenHeight][screenWidth];
-	private static int[] memory = new int[50000];
+	private static JLabel[][] screen = new JLabel[UAMemory.screenHeight][UAMemory.screenWidth];
 	private static int pc = 0;
 	private static String currentLabel = null;
 
@@ -171,17 +166,17 @@ public class Interpret {
 		}
 	}
 
-	public static enum Operation {
+	static enum Operation {
 		LD {
 			@Override
 			public void run(ParSet p) {
-				p.B.data = memory[p.resolveA()];
+				p.B.data = UAMemory.getLocation(p.resolveA());
 			}
 		},
 		ST {
 			@Override
 			public void run(ParSet p) {
-				memory[p.resolveA()] = p.B.data;
+				UAMemory.setLocation(p.resolveA(), p.B.data);
 			}
 		},
 		JZ {
@@ -257,7 +252,7 @@ public class Interpret {
 		RandomAccessFile raf = new RandomAccessFile(args[0], "r");
 		ArrayList<String> fc = new ArrayList<>();
 		String l;
-		int constIndex = constantsStart;
+		int constIndex = UAMemory.constants;
 		// Reading the file and processing the constants
 		while ((l = raf.readLine()) != null) {
 			String tr = l.trim();
@@ -287,18 +282,18 @@ public class Interpret {
 										skipInitial = false;
 									}
 								}
-								memory[constIndex++] = c;
+								UAMemory.setConstant(constIndex++,c);
 								stlen++;
 							}
 							if (stlen == 0) {
 								errorAndExit("Empty string constant");
 							}
-							memory[constIndex] = 0;
+							UAMemory.setConstant(constIndex, 0);
 							break;
 						case "NR ":
 							try {
 								int num = Integer.parseInt(spaceSplit[2]);
-								memory[constIndex] = num;
+								UAMemory.setConstant(constIndex, num);
 								constMap.put(constantName, constIndex);
 							} catch (NumberFormatException nf) {
 								errorAndExit(nf.getMessage());
@@ -350,15 +345,15 @@ public class Interpret {
 		if (stop == null) {
 			errorAndExit("No program termination label is defined");
 		}
-		
+
 		// Parsing complete. Here comes the GUI
-		
+
 		char c = 956;
 		JFrame mainWindow = new JFrame("Visualiser for the " + c + "A interpreter");
 		Container cp = mainWindow.getContentPane();
-		cp.setLayout(new GridLayout(screenHeight, screenWidth,0,0));
-		for (int i = 0; i < screenHeight; i++) {
-			for (int j = 0; j < screenWidth; j++) {
+		cp.setLayout(new GridLayout(UAMemory.screenHeight, UAMemory.screenWidth, 0, 0));
+		for (int i = 0; i < UAMemory.screenHeight; i++) {
+			for (int j = 0; j < UAMemory.screenWidth; j++) {
 				screen[i][j] = new JLabel(" ");
 				screen[i][j].setFont(Font.getFont(Font.MONOSPACED));
 				screen[i][j].setPreferredSize(new Dimension(13, 13));
@@ -384,16 +379,16 @@ public class Interpret {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				e.consume();
-				memory[keyboardInput] = e.getKeyCode();
+				UAMemory.setKeyboard(e.getKeyCode());
 			}
 		});
 		new Thread() {
 			@Override
 			public void run() {
 				while (true) {
-					for (int i = 0; i < screenHeight; i++) {
-						for (int j = 0; j < screenWidth; j++) {
-							screen[i][j].setText("" + (char) memory[i * 80 + j]);
+					for (int i = 0; i < UAMemory.screenHeight; i++) {
+						for (int j = 0; j < UAMemory.screenWidth; j++) {
+							screen[i][j].setText("" + (char) UAMemory.getLocation(i * 80 + j));
 						}
 					}
 					try {
@@ -405,7 +400,7 @@ public class Interpret {
 				}
 			}
 		}.start();
-		
+
 		// GUI Ready now we can run the program
 
 		// Running the parsed program
