@@ -22,15 +22,30 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
-public class UAMemory {
+import java.util.EnumMap;
+import java.util.HashMap;
+
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
+
+public class UAMachine {
 	public static final int screenWidth = 80;
 	public static final int screenHeight = 25;
-	public static int totalMemory = 50000;
-	public static int keyboard = screenWidth * screenHeight;
-	public static int variables = 10000;
-	public static int constants = 30000;
-
+	public static final int totalMemory = 50000;
+	public static final int keyboard = screenWidth * screenHeight;
+	public static final int variables = 10000;
+	public static final int constants = 30000;
+	public static int programCounter = -1;
+	public static int finalProgramAddress = -1;
+	public static HashMap<Integer, Expression> theProgram = new HashMap<>();
+	public static EnumMap<Register.RegType, Integer> regValues = new EnumMap<>(Register.RegType.class);
 	private static int[] memory = new int[totalMemory];
+	
+	static {
+		for(Register.RegType r:Register.RegType.values()) {
+			regValues.put(r, 0);
+		}
+	}
 
 	public static int getLocation(int loc) {
 		if (totalMemory <= loc || 0 > loc) {
@@ -56,5 +71,4 @@ public class UAMemory {
 		}
 		memory[loc] = val;
 	}
-
 }

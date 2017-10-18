@@ -43,4 +43,9 @@ public class Identifier extends ContainerExpression<String> {
 	public void setMemLoc(int memLoc) {
 		this.memLoc = memLoc;
 	}
+
+	@Override
+	public String toString() {
+		return "{" + super.toString() + "@" + memLoc + "}";
+	}
 }

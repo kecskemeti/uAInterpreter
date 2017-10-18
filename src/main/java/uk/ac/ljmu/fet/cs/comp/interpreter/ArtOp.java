@@ -22,28 +22,24 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
-import java.io.FileReader;
-import java.util.HashMap;
-
-import uk.ac.ljmu.fet.cs.comp.interpreter.generated.LexuA;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
-
-public class UAProgram {
-	public static HashMap<Integer, Expression> theProgram = new HashMap<>();
-
-	public static void load(String file) throws Exception {
-		LexuA lexer = new LexuA(new FileReader(file));
-		SyntaxCheck sc = new SyntaxCheck();
-		Expression e = null;
-		// Pass 1:
-		while ((e = lexer.yylex()) != null) {
-			e.accept(sc);
-			theProgram.put(e.myloc, e);
+public enum ArtOp {
+	AD {
+		@Override
+		int realOP(int a, int b) {
+			return a + b;
 		}
-		ReferenceCheck rc = new ReferenceCheck();
-		// Pass 2:
-		for (Expression ex : theProgram.values()) {
-			ex.accept(rc);
+	},
+	ML {
+		@Override
+		int realOP(int a, int b) {
+			return a * b;
 		}
-	}
+	},
+	DV {
+		@Override
+		int realOP(int a, int b) {
+			return a / b;
+		}
+	};
+	abstract int realOP(int a, int b);
 }

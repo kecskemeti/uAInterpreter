@@ -43,11 +43,12 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
 public class ReferenceCheck implements Visitor {
 
 	@Override
-	public void visit(Identifier e) {
-		System.out.println("Checking id " + e.containedValue);
-		if (!SymbolTable.globalTable.containsKey(e.containedValue)) {
-			throw new Error("Unknown identifier referenced at line " + e.myloc);
+	public void visit(Identifier i) {
+		Expression ex = SymbolTable.globalTable.get(i.containedValue);
+		if (ex == null) {
+			throw new Error("Unknown identifier referenced at line " + i.myloc);
 		}
+		i.setMemLoc(((Identifier) ex.left).getMemLoc());
 	}
 
 	private void compositeDescent(Expression e) {

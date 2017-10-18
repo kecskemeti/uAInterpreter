@@ -29,9 +29,14 @@ public abstract class Expression implements Visited {
 	public final Expression left, right;
 
 	public Expression(int loc, Expression l, Expression r) {
-		myloc = loc+1;
+		myloc = loc + 1;
 		left = l;
 		right = r;
 	}
 
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + "(loc: " +myloc + " L: "+(left == null ? "-" : left) + "," + " R: "+(right == null ? "-" : right)
+				+ ")";
+	}
 }

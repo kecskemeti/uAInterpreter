@@ -29,4 +29,9 @@ public abstract class ContainerExpression<T> extends Expression {
 		super(loc, l, r);
 		containedValue = val;
 	}
+	
+	@Override
+	public String toString() {
+		return "["+super.toString() +"=>"+containedValue+"]";
+	}
 }

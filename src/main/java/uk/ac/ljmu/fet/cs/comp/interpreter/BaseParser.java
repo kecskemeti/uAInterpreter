@@ -22,30 +22,20 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-
-public class Interpret {
+//TODO: The original parser, not yet compatible with the new interpreter
+public class BaseParser {
 	public static final HashMap<String, Integer> constMap = new HashMap<>();
 	public static final HashMap<String, Step> labels = new HashMap<>();
 	public static final HashMap<Integer, Step> theProgram = new HashMap<>();
-	private static JLabel[][] screen = new JLabel[UAMemory.screenHeight][UAMemory.screenWidth];
-	private static int pc = 0;
 	private static String currentLabel = null;
 
 	public static void errorAndExit(String msg) {
-		System.err.println("Fatal error at line " + (pc + 1));
+		System.err.println("Fatal error at line " + (UAMachine.programCounter + 1));
 		System.err.println(msg);
 		System.exit(1);
 	}
@@ -137,7 +127,7 @@ public class Interpret {
 			} else {
 				label = null;
 			}
-			myloc = pc;
+			myloc = UAMachine.programCounter;
 			op = o;
 			ParSet t = null;
 			String[] pars = opDetails.substring(1).split(",");
@@ -170,13 +160,13 @@ public class Interpret {
 		LD {
 			@Override
 			public void run(ParSet p) {
-				p.B.data = UAMemory.getLocation(p.resolveA());
+				p.B.data = UAMachine.getLocation(p.resolveA());
 			}
 		},
 		ST {
 			@Override
 			public void run(ParSet p) {
-				UAMemory.setLocation(p.resolveA(), p.B.data);
+				UAMachine.setLocation(p.resolveA(), p.B.data);
 			}
 		},
 		JZ {
@@ -190,26 +180,26 @@ public class Interpret {
 		JM {
 			@Override
 			public void run(ParSet p) {
-				pc = p.resolveA();
-				pc--;
+				UAMachine.programCounter = p.resolveA();
+				UAMachine.programCounter--;
 			}
 		},
 		AD {
 			@Override
 			public void run(ParSet p) {
-				ArtOp.AD.doOp(p);
+				doArt(p, ArtOp.AD);
 			}
 		},
 		ML {
 			@Override
 			public void run(ParSet p) {
-				ArtOp.ML.doOp(p);
+				doArt(p, ArtOp.ML);
 			}
 		},
 		DV {
 			@Override
 			public void run(ParSet p) {
-				ArtOp.DV.doOp(p);
+				doArt(p, ArtOp.DV);
 			}
 		},
 		MV {
@@ -218,33 +208,11 @@ public class Interpret {
 				p.B.data = p.resolveA();
 			}
 		};
-		private static enum ArtOp {
-			AD {
-				@Override
-				int realOP(int a, int b) {
-					return a + b;
-				}
-			},
-			ML {
-				@Override
-				int realOP(int a, int b) {
-					return a * b;
-				}
-			},
-			DV {
-				@Override
-				int realOP(int a, int b) {
-					return a / b;
-				}
-			};
-			public void doOp(ParSet p) {
-				p.B.data = realOP(p.B.data, p.resolveA());
-			}
-
-			abstract int realOP(int a, int b);
-		}
-
 		public abstract void run(ParSet p);
+
+		public void doArt(ParSet p, ArtOp op) {
+			p.B.data = op.realOP(p.B.data, p.resolveA());
+		}
 
 	}
 
@@ -252,7 +220,7 @@ public class Interpret {
 		RandomAccessFile raf = new RandomAccessFile(args[0], "r");
 		ArrayList<String> fc = new ArrayList<>();
 		String l;
-		int constIndex = UAMemory.constants;
+		int constIndex = UAMachine.constants;
 		// Reading the file and processing the constants
 		while ((l = raf.readLine()) != null) {
 			String tr = l.trim();
@@ -282,18 +250,18 @@ public class Interpret {
 										skipInitial = false;
 									}
 								}
-								UAMemory.setConstant(constIndex++,c);
+								UAMachine.setConstant(constIndex++, c);
 								stlen++;
 							}
 							if (stlen == 0) {
 								errorAndExit("Empty string constant");
 							}
-							UAMemory.setConstant(constIndex, 0);
+							UAMachine.setConstant(constIndex, 0);
 							break;
 						case "NR ":
 							try {
 								int num = Integer.parseInt(spaceSplit[2]);
-								UAMemory.setConstant(constIndex, num);
+								UAMachine.setConstant(constIndex, num);
 								constMap.put(constantName, constIndex);
 							} catch (NumberFormatException nf) {
 								errorAndExit(nf.getMessage());
@@ -304,7 +272,7 @@ public class Interpret {
 						}
 						constIndex++;
 						// Constants are processed now we don't need to remember them
-						fc.remove(pc);
+						fc.remove(UAMachine.programCounter);
 						fc.add("");
 					} else {
 						errorAndExit("Invalid constant definition.");
@@ -312,10 +280,10 @@ public class Interpret {
 				}
 
 			}
-			pc++;
+			UAMachine.programCounter++;
 		}
 		raf.close();
-		pc = 0;
+		UAMachine.programCounter = 0;
 		// Parsing the instructions
 		for (String tr : fc) {
 			if (!tr.isEmpty()) {
@@ -329,13 +297,13 @@ public class Interpret {
 					String opid = tr.substring(0, 2);
 					try {
 						Step s = new Step(Operation.valueOf(opid), tr.substring(2));
-						theProgram.put(pc, s);
+						theProgram.put(UAMachine.programCounter, s);
 					} catch (IllegalArgumentException e) {
 						errorAndExit("Unknown operation name");
 					}
 				}
 			}
-			pc++;
+			UAMachine.programCounter++;
 		}
 		Step start = labels.get("entry");
 		Step stop = labels.get("exit");
@@ -345,74 +313,8 @@ public class Interpret {
 		if (stop == null) {
 			errorAndExit("No program termination label is defined");
 		}
-
+		UAMachine.programCounter = start.myloc;
+		UAMachine.finalProgramAddress = stop.myloc;
 		// Parsing complete. Here comes the GUI
-
-		char c = 956;
-		JFrame mainWindow = new JFrame("Visualiser for the " + c + "A interpreter");
-		Container cp = mainWindow.getContentPane();
-		cp.setLayout(new GridLayout(UAMemory.screenHeight, UAMemory.screenWidth, 0, 0));
-		for (int i = 0; i < UAMemory.screenHeight; i++) {
-			for (int j = 0; j < UAMemory.screenWidth; j++) {
-				screen[i][j] = new JLabel(" ");
-				screen[i][j].setFont(Font.getFont(Font.MONOSPACED));
-				screen[i][j].setPreferredSize(new Dimension(13, 13));
-				cp.add(screen[i][j]);
-			}
-		}
-		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		mainWindow.pack();
-		mainWindow.setVisible(true);
-		mainWindow.setResizable(false);
-		mainWindow.addKeyListener(new KeyListener() {
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-				// ignore
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				// ignore
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				e.consume();
-				UAMemory.setKeyboard(e.getKeyCode());
-			}
-		});
-		new Thread() {
-			@Override
-			public void run() {
-				while (true) {
-					for (int i = 0; i < UAMemory.screenHeight; i++) {
-						for (int j = 0; j < UAMemory.screenWidth; j++) {
-							screen[i][j].setText("" + (char) UAMemory.getLocation(i * 80 + j));
-						}
-					}
-					try {
-						// 60Hz refresh rate for the screen:
-						sleep(1000 / 60);
-					} catch (InterruptedException iex) {
-						// ignore
-					}
-				}
-			}
-		}.start();
-
-		// GUI Ready now we can run the program
-
-		// Running the parsed program
-		pc = start.myloc;
-		int endpc = stop.myloc;
-		while (pc != endpc) {
-			Step s = theProgram.get(pc);
-			if (s != null) {
-				s.execute();
-			}
-			pc++;
-		}
-		mainWindow.setTitle(mainWindow.getTitle() + " - Terminated");
 	}
 }

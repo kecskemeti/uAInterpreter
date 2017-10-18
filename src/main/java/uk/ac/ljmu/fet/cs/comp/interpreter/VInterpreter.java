@@ -41,119 +41,121 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
 
-public class SyntaxCheck implements Visitor {
-	private int constantIndex = UAMachine.constants;
+public class VInterpreter implements Visitor {
+	private InputResolver ir = new InputResolver();
+
+	public boolean interpret() {
+		Expression ex=null;
+		while ((ex = UAMachine.theProgram.get(UAMachine.programCounter++)) == null)
+			;
+		ex.accept(this);
+		return UAMachine.finalProgramAddress != UAMachine.programCounter;
+	}
+	// Erroneous behaviour
 
 	@Override
 	public void visit(Identifier e) {
-		// Ignore
-	}
-
-	@Override
-	public void visit(Register e) {
-		// Ignore
-	}
-
-	// Registration of identifiers and saving their values to constant space
-	@Override
-	public void visit(NumberConstant e) {
-		idDef(e);
-	}
-
-	@Override
-	public void visit(StringConstant e) {
-		idDef(e);
-	}
-
-	@Override
-	public void visit(CodeLabel e) {
-		idDef(e);
+		throw new Error("Unexpected statement at line " + e.myloc);
 	}
 
 	@Override
 	public void visit(IntNumber e) {
-		UAMachine.setConstant(constantIndex++, e.containedValue);
+		throw new Error("Unexpected statement at line " + e.myloc);
+	}
+
+	@Override
+	public void visit(Register e) {
+		throw new Error("Unexpected statement at line " + e.myloc);
 	}
 
 	@Override
 	public void visit(StringValue e) {
-		for (int i = 0; i < e.containedValue.length(); i++) {
-			UAMachine.setConstant(constantIndex++, e.containedValue.charAt(i));
-		}
+		throw new Error("Unexpected statement at line " + e.myloc);
 	}
 
-	private void idDef(Expression e) {
-		if (e.left instanceof Identifier) {
-			Identifier i = (Identifier) e.left;
-			if (SymbolTable.globalTable.containsKey(i.containedValue)) {
-				throw new Error("Identifier name '" + i.containedValue + "' already in use current use at line "
-						+ i.myloc + " previous use at line " + SymbolTable.globalTable.get(i.containedValue).myloc);
-			}
-			SymbolTable.globalTable.put(i.containedValue, e);
-			if (e.right != null) {
-				// Constant mapping
-				i.setMemLoc(constantIndex);
-				e.right.accept(this);
-			} else {
-				// Code labels
-				i.setMemLoc(e.left.myloc);
-			}
-		} else {
-			throw new Error("Non-identifier used in place of an id " + e.myloc);
-		}
+	// Operations
+
+	@Override
+	public void visit(CodeLabel e) {
+		// Do nothing
 	}
 
 	@Override
+	public void visit(NumberConstant e) {
+		// Do nothing
+	}
+
+	@Override
+	public void visit(StringConstant e) {
+		// Do nothing
+	}
+
+	// Arithmetics
+	@Override
 	public void visit(ADOperation e) {
-		visitOp(e);
+		doArithmetic(e, ArtOp.AD);
 	}
 
 	@Override
 	public void visit(DVOperation e) {
-		visitOp(e);
-	}
-
-	@Override
-	public void visit(JMOperation e) {
-		visitOp(e);
-	}
-
-	@Override
-	public void visit(JZOperation e) {
-		visitOp(e);
-	}
-
-	@Override
-	public void visit(LDOperation e) {
-		visitOp(e);
+		doArithmetic(e, ArtOp.DV);
 	}
 
 	@Override
 	public void visit(MLOperation e) {
-		visitOp(e);
+		doArithmetic(e, ArtOp.ML);
+	}
+
+	// Goto/Jump constructs
+	@Override
+	public void visit(JMOperation e) {
+		uncJump(e);
 	}
 
 	@Override
-	public void visit(MVOperation e) {
-		visitOp(e);
+	public void visit(JZOperation e) {
+		e.right.accept(ir);
+		if (ir.getResolvedValue() != 0) {
+			uncJump(e);
+		}
+	}
+
+	// Memory operations
+	@Override
+	public void visit(LDOperation e) {
+		e.left.accept(ir);
+		setReg(e, UAMachine.getLocation(ir.getResolvedValue()));
 	}
 
 	@Override
 	public void visit(STOperation e) {
-		visitOp(e);
+		e.left.accept(ir);
+		int leftVal = ir.getResolvedValue();
+		e.right.accept(ir);
+		UAMachine.setLocation(leftVal, ir.getResolvedValue());
 	}
 
-	private void visitOp(Operation e) {
-		boolean invalidLeftExpr = false;
-		switch (e.kind) {
-		case R:
-			invalidLeftExpr = !(e.left instanceof Register);
-			break;
-		case C:
-			invalidLeftExpr = !((e.left instanceof Identifier) || (e.left instanceof IntNumber));
-		}
-		if (invalidLeftExpr) {
-			throw new Error("Input parameter mismatch at line " + e.myloc);
-		}
+	// Register operations
+	@Override
+	public void visit(MVOperation e) {
+		e.left.accept(ir);
+		setReg(e, ir.getResolvedValue());
+	}
+
+	// Internal helpers
+	private void doArithmetic(Operation e, ArtOp op) {
+		e.left.accept(ir);
+		int leftVal = ir.getResolvedValue();
+		e.right.accept(ir);
+		setReg(e, op.realOP(ir.getResolvedValue(),leftVal));
+	}
+
+	private void setReg(Operation e, int val) {
+		UAMachine.regValues.put(((Register) e.right).containedValue, val);
+	}
+
+	private void uncJump(Operation e) {
+		e.left.accept(ir);
+		UAMachine.programCounter = ir.getResolvedValue();
 	}
 }

@@ -24,7 +24,6 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 
 import java.util.EnumSet;
 
-import uk.ac.ljmu.fet.cs.comp.interpreter.Interpret;
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visitor;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register.RegType;
 
@@ -37,23 +36,22 @@ public class Register extends ContainerExpression<RegType> {
 					return r;
 				}
 			}
-			Interpret.errorAndExit("Invalid register spec");
-			return null;
+			throw new Error("Invalid register spec");
 		}
 
-		public static RegType fromString(String v) {
+		public static RegType fromString(String v, int loc) {
 			try {
 				return RegType.valueOf(v);
 			} catch (IllegalArgumentException e) {
-				Interpret.errorAndExit("Invalid register identifier");
-				return null;
+				throw new Error("Invalid register identifier at line " + loc);
 			}
-
 		}
 	}
+
 	public Register(int loc, String type) {
-		super(loc,null,null, RegType.fromString(type));
+		super(loc, null, null, RegType.fromString(type, loc));
 	}
+
 	@Override
 	public void accept(Visitor v) {
 		v.visit(this);

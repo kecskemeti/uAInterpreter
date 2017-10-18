@@ -90,7 +90,7 @@ Integer = "-"?[:digit:]+
 Identifier = ([0-9]|[a-z])([0-9]|[A-z])*
 Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
 
-%state INSTSPEC PARSPEC STRINGSPEC STRING NRSPEC LABSPEC NRPART
+%state INSTSPEC PARSPEC STRINGSPEC PRESTRINGWS STRING NRSPEC LABSPEC NRPART
 
 %%
     <INSTSPEC> {
@@ -112,13 +112,17 @@ Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
     	[^]					  	 {	throwError("Illegal parameter spec"); }
     }
     <STRINGSPEC>   {
-    	{Identifier}		 	 { 	yybegin(STRING);
+    	{Identifier}		 	 { 	yybegin(PRESTRINGWS);
     								string.setLength(0);
     								saveExpr(new Identifier(yyline,yytext()));
     								doLeft=false;
     							 }
     	{InLineWhiteSpace}   	 { }
     	[^]					 	 {	throwError("Illegal string identifier"); }
+    }
+    <PRESTRINGWS> {
+    	{InLineWhiteSpace}		 { }
+    	[^]						 { yybegin(STRING); string.append(yytext());}
     }
     <STRING> {
       [\n\r]                     {	StringConstant sc = new StringConstant(yyline, left, new StringValue(yyline, string.toString()));
