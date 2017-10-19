@@ -22,299 +22,125 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
-//TODO: The original parser, not yet compatible with the new interpreter
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.CodeLabel;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Identifier;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.IntNumber;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.NumberConstant;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Operation;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+
 public class BaseParser {
-	public static final HashMap<String, Integer> constMap = new HashMap<>();
-	public static final HashMap<String, Step> labels = new HashMap<>();
-	public static final HashMap<Integer, Step> theProgram = new HashMap<>();
-	private static String currentLabel = null;
+	int lineCount=-1;
 
-	public static void errorAndExit(String msg) {
-		System.err.println("Fatal error at line " + (UAMachine.programCounter + 1));
-		System.err.println(msg);
-		System.exit(1);
+	private void throwError(String text, Throwable e) {
+		throw new Error(text + " at line " + lineCount, e);
 	}
 
-	static enum Register {
-		A, B, C, D;
-		public int data = 0;
+	private void throwError(String text) {
+		throwError(text, null);
+	}
 
-		public static Register getByOrdial(int ordial) {
-			for (Register r : EnumSet.allOf(Register.class)) {
-				if (r.ordinal() == ordial) {
-					return r;
+	BufferedReader reader;
+	boolean inprocessing = true;
+
+	public BaseParser(FileReader r) {
+		reader = new BufferedReader(r);
+	}
+
+	public Expression yylex() throws IOException {
+		if (inprocessing) {
+			String l;
+			// Reading the file and processing the constants
+			while ((l = reader.readLine()) != null) {
+				lineCount++;
+				String tr = l.trim();
+				if (tr.startsWith(";")) {
+					// Comments
+					tr = "";
 				}
-			}
-			errorAndExit("Invalid register spec");
-			return null;
-		}
-
-		public static Register fromString(String v) {
-			try {
-				return Register.valueOf(v);
-			} catch (IllegalArgumentException e) {
-				errorAndExit("Invalid register identifier");
-				return null;
-			}
-
-		}
-
-		@Override
-		public String toString() {
-			return "Register " + name() + " value: " + data;
-		}
-	}
-
-	static class ParSet {
-		private final boolean regA;
-		public final Register B;
-		private final String A;
-
-		public ParSet(boolean isAReg, String A, Register B) {
-			this.regA = isAReg;
-			this.A = A;
-			this.B = B;
-		}
-
-		public int resolveA() {
-			int par = -1;
-			if (regA) {
-				par = Register.fromString(A).data;
-			} else {
-				// Late binding to labels
-				try {
-					par = Integer.parseInt(A);
-				} catch (NumberFormatException nf) {
-					// Not a number, maybe a label or a constant
-					Integer addr = constMap.get(A);
-					if (addr == null) {
-						Step s = labels.get(A);
-						if (s == null) {
-							errorAndExit("Invalid constant use in the operation's parameter");
+				if (!tr.isEmpty()) { // Non whitespace
+					// Content
+					if (tr.startsWith("CON")) {
+						// Constants
+						String[] spaceSplit = tr.split("\\s+");
+						if (spaceSplit.length > 2) {
+							String constantName = spaceSplit[1];
+							Identifier constId = new Identifier(lineCount, constantName);
+							switch (tr.substring(3, 6)) {
+							case "ST ":
+								// Constant name + trailing space
+								return new StringConstant(lineCount, constId, new StringValue(lineCount,
+										l.substring(l.indexOf(constantName) + constantName.length() + 1)));
+							case "NR ":
+								try {
+									return new NumberConstant(lineCount, constId,
+											new IntNumber(lineCount, spaceSplit[2]));
+								} catch (NumberFormatException nf) {
+									throwError("Illegal number constant value");
+								}
+								break;
+							default:
+								throwError("Invalid constant type.");
+							}
 						} else {
-							par = s.myloc;
+							throwError("Invalid constant definition.");
 						}
 					} else {
-						par = addr;
-					}
-				}
-			}
-			return par;
-		}
-
-		@Override
-		public String toString() {
-			return "ParSet: " + (regA ? "R" : "C") + A + " " + B;
-		}
-	}
-
-	static class Step {
-		private final Operation op;
-		private final ParSet p;
-		public final String label;
-		public final int myloc;
-
-		public Step(Operation o, String opDetails) {
-			if (currentLabel != null) {
-				label = currentLabel;
-				currentLabel = null;
-				labels.put(label, this);
-			} else {
-				label = null;
-			}
-			myloc = UAMachine.programCounter;
-			op = o;
-			ParSet t = null;
-			String[] pars = opDetails.substring(1).split(",");
-			boolean isParReg = false;
-			switch (opDetails.charAt(0)) {
-			case 'C':
-				break;
-			case 'R':
-				isParReg = true;
-				break;
-			default:
-				errorAndExit("Invalid mode of operation");
-			}
-			t = new ParSet(isParReg, pars[0].trim(),
-					pars.length < 2 ? Register.A : Register.fromString(pars[1].trim()));
-			p = t;
-		}
-
-		public void execute() {
-			op.run(p);
-		}
-
-		@Override
-		public String toString() {
-			return "Step: " + op + " Label: " + label + " Loc: " + myloc + " " + p;
-		}
-	}
-
-	static enum Operation {
-		LD {
-			@Override
-			public void run(ParSet p) {
-				p.B.data = UAMachine.getLocation(p.resolveA());
-			}
-		},
-		ST {
-			@Override
-			public void run(ParSet p) {
-				UAMachine.setLocation(p.resolveA(), p.B.data);
-			}
-		},
-		JZ {
-			@Override
-			public void run(ParSet p) {
-				if (p.B.data != 0) {
-					JM.run(p);
-				}
-			}
-		},
-		JM {
-			@Override
-			public void run(ParSet p) {
-				UAMachine.programCounter = p.resolveA();
-				UAMachine.programCounter--;
-			}
-		},
-		AD {
-			@Override
-			public void run(ParSet p) {
-				doArt(p, ArtOp.AD);
-			}
-		},
-		ML {
-			@Override
-			public void run(ParSet p) {
-				doArt(p, ArtOp.ML);
-			}
-		},
-		DV {
-			@Override
-			public void run(ParSet p) {
-				doArt(p, ArtOp.DV);
-			}
-		},
-		MV {
-			@Override
-			public void run(ParSet p) {
-				p.B.data = p.resolveA();
-			}
-		};
-		public abstract void run(ParSet p);
-
-		public void doArt(ParSet p, ArtOp op) {
-			p.B.data = op.realOP(p.B.data, p.resolveA());
-		}
-
-	}
-
-	public static void main(String[] args) throws Exception {
-		RandomAccessFile raf = new RandomAccessFile(args[0], "r");
-		ArrayList<String> fc = new ArrayList<>();
-		String l;
-		int constIndex = UAMachine.constants;
-		// Reading the file and processing the constants
-		while ((l = raf.readLine()) != null) {
-			String tr = l.trim();
-			if (tr.startsWith(";")) {
-				tr = "";
-			}
-			fc.add(tr);
-			if (!tr.isEmpty()) {
-				// Content
-				if (tr.startsWith("CON")) {
-					String[] spaceSplit = tr.split("\\s+");
-					if (spaceSplit.length > 2) {
-						String constantName = spaceSplit[1];
-						switch (tr.substring(3, 6)) {
-						case "ST ":
-							// Constant name + trailing space
-							String data = l.substring(l.indexOf(constantName) + constantName.length() + 1);
-							constMap.put(constantName, constIndex);
-							boolean skipInitial = true;
-							int stlen = 0;
-							for (int i = 0; i < data.length(); i++) {
-								char c = data.charAt(i);
-								if (skipInitial) {
-									if (Character.isSpaceChar(c)) {
-										continue;
-									} else {
-										skipInitial = false;
+						int labEnd = tr.indexOf(':');
+						if (labEnd > 0) {
+							// Labels
+							if (labEnd + 1 != tr.length()) {
+								throwError("Invalid label");
+							}
+							return new CodeLabel(lineCount, new Identifier(lineCount, tr.substring(0, tr.length() - 1)),
+									null);
+						} else {
+							// Instructions
+							String opN = tr.substring(0, 2);
+							String opDetails = tr.substring(2);
+							try {
+								String[] pars = opDetails.substring(1).split(",");
+								Operation.AttKind kind = Operation.AttKind.valueOf("" + opDetails.charAt(0));
+								String leftStr = pars[0].trim();
+								Expression left = null;
+								try {
+									// Test if it is a reg
+									Register.RegType.valueOf(leftStr);
+									left = new Register(lineCount, leftStr);
+								} catch (IllegalArgumentException e) {
+									// Exception if this is not reg
+									try {
+										left = new IntNumber(lineCount, leftStr);
+									} catch (NumberFormatException nf) {
+										// Exception if it is not a number
+										left = new Identifier(lineCount, leftStr);
 									}
 								}
-								UAMachine.setConstant(constIndex++, c);
-								stlen++;
+								Register right = new Register(lineCount,
+										pars.length < 2 ? Register.RegType.A.name() : pars[1].trim());
+								return Operation.opFactory(lineCount, opN, left, right, kind);
+							} catch (IllegalArgumentException e) {
+								throwError("Illegal input type spec");
+							} catch (Exception e) {
+								// OpFactory fails
+								throwError("Illegal operation ", e);
 							}
-							if (stlen == 0) {
-								errorAndExit("Empty string constant");
-							}
-							UAMachine.setConstant(constIndex, 0);
-							break;
-						case "NR ":
-							try {
-								int num = Integer.parseInt(spaceSplit[2]);
-								UAMachine.setConstant(constIndex, num);
-								constMap.put(constantName, constIndex);
-							} catch (NumberFormatException nf) {
-								errorAndExit(nf.getMessage());
-							}
-							break;
-						default:
-							errorAndExit("Invalid constant type.");
 						}
-						constIndex++;
-						// Constants are processed now we don't need to remember them
-						fc.remove(UAMachine.programCounter);
-						fc.add("");
-					} else {
-						errorAndExit("Invalid constant definition.");
 					}
-				}
 
-			}
-			UAMachine.programCounter++;
-		}
-		raf.close();
-		UAMachine.programCounter = 0;
-		// Parsing the instructions
-		for (String tr : fc) {
-			if (!tr.isEmpty()) {
-				int labEnd = tr.indexOf(':');
-				if (labEnd > 0) {
-					if (labEnd + 1 != tr.length()) {
-						errorAndExit("Invalid label");
-					}
-					currentLabel = tr.substring(0, tr.length() - 1);
-				} else {
-					String opid = tr.substring(0, 2);
-					try {
-						Step s = new Step(Operation.valueOf(opid), tr.substring(2));
-						theProgram.put(UAMachine.programCounter, s);
-					} catch (IllegalArgumentException e) {
-						errorAndExit("Unknown operation name");
-					}
 				}
 			}
-			UAMachine.programCounter++;
+			// Parsing complete
+			inprocessing = false;
+			reader.close();
 		}
-		Step start = labels.get("entry");
-		Step stop = labels.get("exit");
-		if (start == null) {
-			errorAndExit("No program entry label is defined");
-		}
-		if (stop == null) {
-			errorAndExit("No program termination label is defined");
-		}
-		UAMachine.programCounter = start.myloc;
-		UAMachine.finalProgramAddress = stop.myloc;
-		// Parsing complete. Here comes the GUI
+		return null;
 	}
 }
