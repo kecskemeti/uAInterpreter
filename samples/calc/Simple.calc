@@ -1,0 +1,8 @@
+A = 3
+B = 4
+C = A * B
+print C
+C = C - 1
+D = C / A
+print D
+
