@@ -46,7 +46,7 @@
 ;                register, it is constantly saved and loaded from memory.
 ;                See operations like LDC/STC 10000,x .
 
-CONNR delay 100000
+CONNR delay 200000
 entry:
 ; Setup
 ; Location of the previous asterisk
