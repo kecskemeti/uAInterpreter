@@ -17,13 +17,6 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	<dependencies>
-		<dependency>
-			<groupId>de.jflex</groupId>
-			<artifactId>jflex</artifactId>
-			<version>1.6.1</version>
-		</dependency>
-	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
@@ -44,18 +37,6 @@
 						<phase>verify</phase>
 						<goals>
 							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>de.jflex</groupId>
-				<artifactId>maven-jflex-plugin</artifactId>
-				<version>1.4.3</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
 						</goals>
 					</execution>
 				</executions>
