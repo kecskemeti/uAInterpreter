@@ -33,7 +33,8 @@ import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.*;
 
 %{
 	VariableRef targetVar=null;
-	Statement.Kind stKind=null;
+	// Default: assignment 
+	String stKind="";
 	CalcExpression left, right;
 	boolean doLeft=true;
 	
@@ -51,12 +52,12 @@ import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.*;
 	}
 	
 	private void switchToInitial() {
-		targetVar=null; stKind=null; left=right=null; doLeft=true;
+		targetVar=null; stKind=""; left=right=null; doLeft=true;
 		yybegin(YYINITIAL);
 	}
 	
 	private Statement genStatement() {
-		Statement s=new Statement(yyline, stKind, targetVar, left, right);
+		Statement s=Statement.statementFactory(yyline, stKind, targetVar, left, right);
 		switchToInitial();
 		return s;
 	}
@@ -74,18 +75,19 @@ LineTerminator    = \r|\n|\r\n
 InputCharacter    = [^\r\n]
 InLineWhiteSpace  = [ \t\f]
 WhiteSpace        = {LineTerminator} | {InLineWhiteSpace}
+Comment = "---" {InputCharacter}* {LineTerminator}?
 
 
 var = [A-Z]+
 num = "-"?[0-9]+
-op = {InLineWhiteSpace} [+-/*] {InLineWhiteSpace}
+op = {InLineWhiteSpace} [+-/*%!] {InLineWhiteSpace}
 
 %state AFTEREQ VARDEF PRINTST
 
 %%
     <AFTEREQ> {
-    	{op}					 { if(stKind==null) {
-    								   stKind=Statement.Kind.opToKind(yyline, yytext().trim());
+    	{op}					 { if(stKind=="") {
+    								   stKind=yytext().trim();
     							   } else {
     							   	   throwError("Only a single operation is allowed per line");
     							   }
@@ -93,7 +95,7 @@ op = {InLineWhiteSpace} [+-/*] {InLineWhiteSpace}
     	{var}					 { saveExpr(new VariableRef(yyline, yytext())); }
     	{num}					 { saveExpr(new CalcIntNumber(yyline, yytext())); }
     	{InLineWhiteSpace}    	 { }
-    	{LineTerminator}		 { return genStatement(); }
+    	{Comment}|{LineTerminator}		 { return genStatement(); }
     	[^]						 { throwError("Illegal assignment spec"); }
     }
     <VARDEF> {
@@ -108,13 +110,16 @@ op = {InLineWhiteSpace} [+-/*] {InLineWhiteSpace}
     									throwError("Only a single variable can be printed out at a time");
     								}
     							 }
-    	{LineTerminator}		 { 	return genStatement(); }
+    	{Comment}|{LineTerminator}
+    				 			 { 	return genStatement(); }
     	{InLineWhiteSpace}    	 { }
     	[^]					  	 {	throwError("Illegal print statement"); }
     }
     <YYINITIAL> {
-    	"print"					 {  yybegin(PRINTST); stKind=Statement.Kind.print; }
-    	{var}					 {  yybegin(VARDEF); targetVar=new VariableRef(yyline, yytext()); }						
+    	"#"						 {  return new AlterScope(yyline); }
+    	"print"					 {  yybegin(PRINTST); stKind=yytext(); }
+    	{var}					 {  yybegin(VARDEF); targetVar=new VariableRef(yyline, yytext()); }
+    	{Comment}				 {  }						
         {WhiteSpace}	 		 {  }
     }
     

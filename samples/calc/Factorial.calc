@@ -23,13 +23,19 @@
 
 --- Example to compile into uA
 
---- This file shows the basics of the calc language
---- Notice, no need for declaration, the first assignment operation is used for that
-A = 3 --- Assignment
-B = 4
-C = A * B --- Multiplication + assignment
-print C   --- Should print out 12, only variables can be printed!
-C = C - 1 
-D = C / A --- As this is a division between two integers, we should get 3
-print D
+--- Presents how to calculate the factorial for a number with calc
 
+FACT = % 1
+#
+	FACT = 1
+#
+
+FACT = % A
+#
+	B = A - 1
+	B = FACT ! B
+	FACT = A * B
+#
+
+A = FACT ! 10
+print A

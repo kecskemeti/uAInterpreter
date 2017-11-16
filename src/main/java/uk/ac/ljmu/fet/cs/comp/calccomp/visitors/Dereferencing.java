@@ -22,6 +22,8 @@
  */
 package uk.ac.ljmu.fet.cs.comp.calccomp.visitors;
 
+import java.util.Collection;
+
 import uk.ac.ljmu.fet.cs.comp.calccomp.CalcHelperStructures;
 import uk.ac.ljmu.fet.cs.comp.calccomp.interfaces.CalcVisitor;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.AdditionStatement;
@@ -37,100 +39,68 @@ import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.Statement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.SubtractionStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.VariableRef;
 
-public class CalcSyntaxCheck implements CalcVisitor {
+public class Dereferencing implements CalcVisitor {
 
-	@Override
-	public void visit(CalcIntNumber e) {
-		// do nothing
+	private boolean declare(VariableRef v) {
+		return false;
 	}
 
-	@Override
-	public void visit(AlterScope e) {
-		// do nothing
-	}
-
-	@Override
-	public void visit(VariableRef e) {
-		// do nothing
-	}
-
-	private void ensureTarget(Statement e) {
-		if (e.target == null) {
-			e.throwError("No target specified for the statement");
-		}
-	}
-
-	private void ensureLeft(Statement e) {
-		if (e.left == null) {
-			e.throwError("No left subexpression specified for the statement");
-		}
-	}
-
-	private void ensureRight(Statement e) {
-		if (e.right == null) {
-			e.throwError("No right subexpression specified for the statement");
-		}
-	}
-
-	private void checkMultiParStatement(Statement e, boolean t, boolean l, boolean r) {
-		if (t)
-			ensureTarget(e);
-		if (l)
-			ensureLeft(e);
-		if (r)
-			ensureRight(e);
+	private void handleGenericStatement(Statement e) {
+		declare(e.target);
 		e.propagate(this);
-	}
-
-	private void checkMultiParStatement(Statement e) {
-		checkMultiParStatement(e, true, true, true);
 	}
 
 	@Override
 	public void visit(AdditionStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(DivisionStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(FunctionCallStatement e) {
-		checkMultiParStatement(e);
-		if (e.left instanceof VariableRef) {
-			((VariableRef) e.left).functionName = true;
-		} else {
-			e.throwError("A function call does not reference to a function");
-		}
-	}
-
-	@Override
-	public void visit(MultiplyStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(SubtractionStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(PrintStatement e) {
-		checkMultiParStatement(e, true, false, false);
-	}
-
-	@Override
-	public void visit(FunctionDeclarationStatement e) {
-		checkMultiParStatement(e, true, true, false);
-		e.target.functionName = true;
-		CalcHelperStructures.allFunctions.add(e);
-		e.generateCanonicalName();
+		handleGenericStatement(e);
 	}
 
 	@Override
 	public void visit(AssignStatement e) {
-		checkMultiParStatement(e, true, true, false);
+		handleGenericStatement(e);
 	}
+
+	@Override
+	public void visit(DivisionStatement e) {
+		handleGenericStatement(e);
+	}
+
+	@Override
+	public void visit(FunctionCallStatement e) {
+		handleGenericStatement(e);
+	}
+
+	@Override
+	public void visit(MultiplyStatement e) {
+		handleGenericStatement(e);
+	}
+
+	@Override
+	public void visit(SubtractionStatement e) {
+		handleGenericStatement(e);
+	}
+
+	@Override
+	public void visit(PrintStatement e) {
+		e.target.accept(this);
+	}
+
+	@Override
+	public void visit(FunctionDeclarationStatement e) {
+	}
+
+	@Override
+	public void visit(AlterScope e) {
+		// Nothing to do
+	}
+
+	@Override
+	public void visit(CalcIntNumber e) {
+		// Nothing to do
+	}
+
+	@Override
+	public void visit(VariableRef e) {
+	}
+
 }

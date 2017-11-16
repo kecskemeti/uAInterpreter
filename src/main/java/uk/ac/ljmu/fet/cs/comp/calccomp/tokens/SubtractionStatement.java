@@ -24,14 +24,9 @@ package uk.ac.ljmu.fet.cs.comp.calccomp.tokens;
 
 import uk.ac.ljmu.fet.cs.comp.calccomp.interfaces.CalcVisitor;
 
-public class VariableRef extends CalcExpression {
-	public final String myId;
-	public int memLoc = -1;
-	public boolean functionName = false;
-
-	public VariableRef(int loc, String id) {
-		super(loc);
-		myId = id;
+public class SubtractionStatement extends Statement {
+	public SubtractionStatement(int loc, VariableRef target, CalcExpression left, CalcExpression right) {
+		super(loc, target, left, right);
 	}
 
 	@Override
@@ -39,13 +34,9 @@ public class VariableRef extends CalcExpression {
 		v.visit(this);
 	}
 
-	public boolean isReturnValue() {
-		return memLoc == FunctionDeclarationStatement.returnValueIndicator;
-	}
-
 	@Override
 	public String toString() {
-		return "(" + super.toString() + "[VAR:" + myId + " mem:" + memLoc + " isFunction:" + functionName + "])";
+		return "(" + super.toString() + "[" + target + "=" + left + "-" + right + "])";
 	}
 
 }

@@ -22,15 +22,39 @@
  */
 package uk.ac.ljmu.fet.cs.comp.calccomp.interfaces;
 
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.AdditionStatement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.AlterScope;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.AssignStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.CalcIntNumber;
-import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.Statement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.DivisionStatement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.FunctionCallStatement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.FunctionDeclarationStatement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.MultiplyStatement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.PrintStatement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.SubtractionStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.VariableRef;
 
 public interface CalcVisitor {
 	void visit(CalcIntNumber e);
 
-	void visit(Statement e);
+	void visit(AdditionStatement e);
+
+	void visit(SubtractionStatement e);
+
+	void visit(AssignStatement e);
+
+	void visit(DivisionStatement e);
+
+	void visit(FunctionCallStatement e);
+
+	void visit(FunctionDeclarationStatement e);
+
+	void visit(MultiplyStatement e);
+
+	void visit(PrintStatement e);
 
 	void visit(VariableRef e);
+
+	void visit(AlterScope e);
 
 }

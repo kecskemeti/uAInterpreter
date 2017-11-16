@@ -24,40 +24,57 @@ package uk.ac.ljmu.fet.cs.comp.calccomp.tokens;
 
 import uk.ac.ljmu.fet.cs.comp.calccomp.interfaces.CalcVisitor;
 
-public class Statement extends CalcExpression {
-	public static enum Kind {
-		print, add, subtract, multiply, divide;
-		public static Kind opToKind(int loc, String op) {
-			switch (op) {
-			case "-":
-				return subtract;
-			case "+":
-				return add;
-			case "/":
-				return divide;
-			case "*":
-				return multiply;
-			default:
-				throw new Error("Unknown operation ('" + op + "') at line " + loc);
+public abstract class Statement extends CalcExpression {
+
+	public final VariableRef target;
+	public final CalcExpression left, right;
+
+	private final CalcExpression[] subexprs;
+
+	public Statement(int loc, VariableRef target, CalcExpression left, CalcExpression right) {
+		super(loc);
+		this.target = target;
+		this.left = left;
+		this.right = right;
+		subexprs = new CalcExpression[] { target, left, right };
+	}
+
+	@Override
+	public void addToFunction(FunctionDeclarationStatement fn) {
+		super.addToFunction(fn);
+		myFunction.inScopeStatements.add(this);
+	}
+
+	public void propagate(CalcVisitor v) {
+		for (CalcExpression se : subexprs) {
+			if (se != null) {
+				se.accept(v);
 			}
 		}
 	}
 
-	public final Kind myKind;
-	public final VariableRef target;
-	public final CalcExpression left, right;
-
-	public Statement(int loc, Kind k, VariableRef target, CalcExpression left, CalcExpression right) {
-		super(loc);
-		myKind = k;
-		this.target = target;
-		this.left = left;
-		this.right = right;
-	}
-
-	@Override
-	public void accept(CalcVisitor v) {
-		v.visit(this);
+	public static Statement statementFactory(int loc, String op, VariableRef target, CalcExpression left,
+			CalcExpression right) {
+		switch (op) {
+		case "-":
+			return new SubtractionStatement(loc, target, left, right);
+		case "+":
+			return new AdditionStatement(loc, target, left, right);
+		case "/":
+			return new DivisionStatement(loc, target, left, right);
+		case "*":
+			return new MultiplyStatement(loc, target, left, right);
+		case "%":
+			return new FunctionDeclarationStatement(loc, target, left, right);
+		case "!":
+			return new FunctionCallStatement(loc, target, left, right);
+		case "":
+			return new AssignStatement(loc, target, left, right);
+		case "print":
+			return new PrintStatement(loc, target, left, right);
+		default:
+			throw new Error("Unknown operation ('" + op + "') at line " + loc);
+		}
 	}
 
 }

@@ -24,30 +24,62 @@ package uk.ac.ljmu.fet.cs.comp.calccomp;
 
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.ArrayList;
 
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.CalcExpression;
-import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.Statement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.FunctionDeclarationStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.visitors.CalcSyntaxCheck;
+import uk.ac.ljmu.fet.cs.comp.calccomp.visitors.Dereferencing;
+import uk.ac.ljmu.fet.cs.comp.calccomp.visitors.ScopeManager;
 import uk.ac.ljmu.fet.cs.comp.calccomp.visitors.UACodeGenerator;
+import uk.ac.ljmu.fet.cs.comp.calccomp.visitors.UnreachableCodeDetector;
 import uk.ac.ljmu.fet.cs.comp.interpreter.generated.LexCalc;
 
 public class CompileCalc {
-	public static void main(String[] file) throws Exception {
-		LexCalc lexer = new LexCalc(new FileReader(file[0]));
-		CalcSyntaxCheck sc = new CalcSyntaxCheck();
-		CalcExpression e = null;
-		// Pass 1, lexing, syntax and identifier detection
-		while ((e = lexer.yylex()) != null) {
-			e.accept(sc);
-			CalcHelperStructures.calcProgram.add((Statement) e);
+	public static void main(String[] file) {
+		try {
+			LexCalc lexer = new LexCalc(new FileReader(file[0]));
+			ArrayList<CalcExpression> expressions = new ArrayList<>();
+			CalcSyntaxCheck sc = new CalcSyntaxCheck();
+			// Pass 1, lexing and basic syntax checking
+			for (CalcExpression ex = null; (ex = lexer.yylex()) != null;) {
+				ex.accept(sc);
+				expressions.add(ex);
+			}
+
+			// Pass 2, detecting scope for every expression
+			ScopeManager sm = new ScopeManager();
+			for (CalcExpression ex : expressions) {
+				ex.accept(sm);
+			}
+
+			// Pass 3, dereferencing, ensures we have defined every variable in the
+			// corresponding scope, as well as assigns an entry for the variables in the
+			// frame of the function
+			Dereferencing deref = new Dereferencing();
+			for (CalcExpression ex : expressions) {
+				ex.accept(deref);
+			}
+
+			// Pass 4: checking for unreachable code
+			UnreachableCodeDetector ucd = new UnreachableCodeDetector();
+			for (CalcExpression ex : expressions) {
+				ex.accept(ucd);
+			}
+
+			// TODO: Should check: there is a generic case and only one
+
+			// Pass 5, code generation
+			UACodeGenerator uacg = new UACodeGenerator();
+			for (FunctionDeclarationStatement f : CalcHelperStructures.allFunctions) {
+				f.accept(uacg);
+			}
+			FileWriter fw = new FileWriter(file[0] + ".ua");
+			fw.write(uacg.getGenerated());
+			fw.close();
+			System.out.println("Compilation successful.");
+		} catch (Throwable e) {
+			System.err.println("Compilation failed. Reason: " + e.getMessage());
 		}
-		// Pass 2, code generation
-		UACodeGenerator uacg = new UACodeGenerator();
-		for (Statement s : CalcHelperStructures.calcProgram) {
-			s.accept(uacg);
-		}
-		FileWriter fw = new FileWriter(file[0] + ".ua");
-		fw.write(uacg.getGenerated());
-		fw.close();
 	}
 }

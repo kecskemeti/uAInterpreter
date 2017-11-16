@@ -23,12 +23,30 @@
 package uk.ac.ljmu.fet.cs.comp.calccomp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.Statement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.FunctionDeclarationStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.VariableRef;
 
 public class CalcHelperStructures {
-	public static final HashMap<String, VariableRef> globalSymbolTable = new HashMap<>();
-	public static final ArrayList<Statement> calcProgram = new ArrayList<>();
+	public static final FunctionDeclarationStatement globalFunction = new FunctionDeclarationStatement(-1,
+			new VariableRef(-1, "gLoBaLfUnCtIoN"), null, null);
+	public static final List<FunctionDeclarationStatement> allFunctions = new ArrayList<>();
+	/**
+	 * Contains the mapping of the overloaded function names to their actual
+	 * alternative declarations
+	 */
+	public static final HashMap<String, Set<FunctionDeclarationStatement>> alternatives = new HashMap<>();
+
+	static {
+		globalFunction.target.functionName = true;
+		allFunctions.add(globalFunction);
+		HashSet<FunctionDeclarationStatement> globalAlternativeList = new HashSet<>();
+		globalAlternativeList.add(globalFunction);
+		alternatives.put(globalFunction.target.myId, Collections.unmodifiableSet(globalAlternativeList));
+	}
 }

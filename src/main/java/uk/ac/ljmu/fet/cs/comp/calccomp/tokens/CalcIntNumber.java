@@ -29,12 +29,23 @@ public class CalcIntNumber extends CalcExpression {
 
 	public CalcIntNumber(int loc, String val) {
 		super(loc);
-		number = Integer.parseInt(val);
+		int tempNum = 0;
+		try {
+			tempNum = Integer.parseInt(val);
+		} catch (NumberFormatException nfe) {
+			throwError(nfe.getMessage());
+		}
+		number = tempNum;
 	}
-	
+
 	@Override
 	public void accept(CalcVisitor v) {
 		v.visit(this);
+	}
+
+	@Override
+	public String toString() {
+		return "(" + super.toString() + "[NUM=" + number + "])";
 	}
 
 }

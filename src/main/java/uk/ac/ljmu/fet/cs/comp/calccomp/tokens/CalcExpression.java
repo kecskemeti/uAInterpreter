@@ -26,8 +26,30 @@ import uk.ac.ljmu.fet.cs.comp.calccomp.interfaces.CalcVisited;
 
 public abstract class CalcExpression implements CalcVisited {
 	public final int myloc;
+	protected FunctionDeclarationStatement myFunction = null;
 
 	public CalcExpression(int myloc) {
 		this.myloc = myloc + 1;
 	}
+
+	public void throwError(String message) throws Error {
+		throw new Error(message + " at line " + myloc);
+	}
+
+	public void addToFunction(FunctionDeclarationStatement fn) {
+		if (myFunction != null) {
+			throwError("Tried to readd statement to another function");
+		}
+		myFunction = fn;
+	}
+
+	public FunctionDeclarationStatement getMyFunction() {
+		return myFunction;
+	}
+
+	@Override
+	public String toString() {
+		return "{@"+myloc+(myFunction==null?"":" in func "+(myFunction.getCanonicalName()))+"}";
+	}
+
 }

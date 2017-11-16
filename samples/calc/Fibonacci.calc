@@ -23,13 +23,33 @@
 
 --- Example to compile into uA
 
---- This file shows the basics of the calc language
---- Notice, no need for declaration, the first assignment operation is used for that
-A = 3 --- Assignment
-B = 4
-C = A * B --- Multiplication + assignment
-print C   --- Should print out 12, only variables can be printed!
-C = C - 1 
-D = C / A --- As this is a division between two integers, we should get 3
-print D
+--- This file shows an example which requires stack frames
+--- Presents how to calculate the Fibonacci series with calc
+
+
+--- When the main body of the code will execute these function defs will just be ignored
+FIB = % 1 --- First special case
+#
+	FIB = 1 --- Return...
+#
+
+--- When the main body of the code will execute these function defs will just be ignored
+FIB = % 2 --- Second special case
+		  --- A comment could come here but no statements are accepted before scope 
+#
+	FIB = 1
+#
+
+--- When the main body of the code will execute these function defs will just be ignored
+FIB = % A --- Generic body of the Fibonacci function, only one generic is allowed
+#
+	B = A - 1
+	C = A - 2 
+	D = FIB ! B
+	E = FIB ! C
+	FIB = D + E  --- Return
+#
+
+A = FIB ! 9
+print A
 

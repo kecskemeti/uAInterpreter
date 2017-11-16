@@ -27,6 +27,7 @@ import uk.ac.ljmu.fet.cs.comp.calccomp.interfaces.CalcVisitor;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.AdditionStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.AlterScope;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.AssignStatement;
+import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.CalcExpression;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.CalcIntNumber;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.DivisionStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.FunctionCallStatement;
@@ -37,100 +38,90 @@ import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.Statement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.SubtractionStatement;
 import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.VariableRef;
 
-public class CalcSyntaxCheck implements CalcVisitor {
+public class ScopeManager implements CalcVisitor {
+	private FunctionDeclarationStatement currentFunction = CalcHelperStructures.globalFunction;
+	private FunctionDeclarationStatement toBeUsedFunction = null;
 
-	@Override
-	public void visit(CalcIntNumber e) {
-		// do nothing
-	}
-
+	/**
+	 * Ensures we don't use alterscope on the global level, tells the
+	 * FunctionDeclarationStatement where are its boundaries in the source
+	 */
 	@Override
 	public void visit(AlterScope e) {
-		// do nothing
 	}
 
+	/**
+	 * Ensures we don't have declarations inside functions, registers the function
+	 * in the list of functions
+	 */
 	@Override
-	public void visit(VariableRef e) {
-		// do nothing
+	public void visit(FunctionDeclarationStatement e) {
 	}
 
-	private void ensureTarget(Statement e) {
-		if (e.target == null) {
-			e.throwError("No target specified for the statement");
+	/**
+	 * Associates the expression with the current function
+	 * 
+	 * @param e
+	 */
+	private void addExpressionToScope(CalcExpression e) {
+		if(toBeUsedFunction!=null && toBeUsedFunction!=currentFunction) {
+			e.throwError("Unexpected operation in between scoping and function declaration");
 		}
+		e.addToFunction(currentFunction);
 	}
 
-	private void ensureLeft(Statement e) {
-		if (e.left == null) {
-			e.throwError("No left subexpression specified for the statement");
-		}
-	}
-
-	private void ensureRight(Statement e) {
-		if (e.right == null) {
-			e.throwError("No right subexpression specified for the statement");
-		}
-	}
-
-	private void checkMultiParStatement(Statement e, boolean t, boolean l, boolean r) {
-		if (t)
-			ensureTarget(e);
-		if (l)
-			ensureLeft(e);
-		if (r)
-			ensureRight(e);
+	/**
+	 * Ensures scope is referenced in all subexpressions of the statement
+	 * 
+	 * @param e
+	 */
+	private void addStatementToScope(Statement e) {
+		addExpressionToScope(e);
 		e.propagate(this);
-	}
-
-	private void checkMultiParStatement(Statement e) {
-		checkMultiParStatement(e, true, true, true);
 	}
 
 	@Override
 	public void visit(AdditionStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(DivisionStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(FunctionCallStatement e) {
-		checkMultiParStatement(e);
-		if (e.left instanceof VariableRef) {
-			((VariableRef) e.left).functionName = true;
-		} else {
-			e.throwError("A function call does not reference to a function");
-		}
-	}
-
-	@Override
-	public void visit(MultiplyStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(SubtractionStatement e) {
-		checkMultiParStatement(e);
-	}
-
-	@Override
-	public void visit(PrintStatement e) {
-		checkMultiParStatement(e, true, false, false);
-	}
-
-	@Override
-	public void visit(FunctionDeclarationStatement e) {
-		checkMultiParStatement(e, true, true, false);
-		e.target.functionName = true;
-		CalcHelperStructures.allFunctions.add(e);
-		e.generateCanonicalName();
+		addStatementToScope(e);
 	}
 
 	@Override
 	public void visit(AssignStatement e) {
-		checkMultiParStatement(e, true, true, false);
+		addStatementToScope(e);
+	}
+
+	@Override
+	public void visit(DivisionStatement e) {
+		addStatementToScope(e);
+	}
+
+	@Override
+	public void visit(FunctionCallStatement e) {
+		addStatementToScope(e);
+	}
+
+	@Override
+	public void visit(MultiplyStatement e) {
+		addStatementToScope(e);
+	}
+
+	@Override
+	public void visit(PrintStatement e) {
+		addStatementToScope(e);
+	}
+
+	@Override
+	public void visit(SubtractionStatement e) {
+		addStatementToScope(e);
+	}
+
+	@Override
+	public void visit(CalcIntNumber e) {
+		addExpressionToScope(e);
+	}
+
+	@Override
+	public void visit(VariableRef e) {
+		addExpressionToScope(e);
 	}
 }
