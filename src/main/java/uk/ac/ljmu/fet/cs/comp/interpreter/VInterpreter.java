@@ -46,10 +46,14 @@ public class VInterpreter implements Visitor {
 	private InputResolver ir = new InputResolver();
 
 	public boolean interpret() {
-		Expression ex=null;
+		Expression ex = null;
 		while ((ex = UAMachine.theProgram.get(UAMachine.programCounter++)) == null)
 			;
-		ex.accept(this);
+		try {
+			ex.accept(this);
+		} catch (Throwable t) {
+			throw new Error(t.getMessage() + " at line " + ex.myloc, t);
+		}
 		return UAMachine.finalProgramAddress != UAMachine.programCounter;
 	}
 	// Erroneous behaviour
@@ -148,7 +152,7 @@ public class VInterpreter implements Visitor {
 		e.left.accept(ir);
 		int leftVal = ir.getResolvedValue();
 		e.right.accept(ir);
-		setReg(e, op.realOP(ir.getResolvedValue(),leftVal));
+		setReg(e, op.realOP(ir.getResolvedValue(), leftVal));
 	}
 
 	private void setReg(Operation e, int val) {
