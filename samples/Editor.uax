@@ -268,7 +268,7 @@ ADC 80,B
 ; Store the updated
 STC posOfcurrentView,B
 ; Did we reach out of the buffer?
-SBC posOfcurrentView, B
+SBC 20000, B
 JZC repaintbuffer,B
 ; Yes we did, so let's reset the buffer to the bottom
 STC posOfcurrentView,C
