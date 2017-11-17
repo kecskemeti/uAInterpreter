@@ -42,7 +42,7 @@ public abstract class Operation extends Expression {
 			IllegalArgumentException, InvocationTargetException {
 		@SuppressWarnings("unchecked")
 		Class<? extends Operation>[] ops = new Class[] { ADOperation.class, DVOperation.class, JMOperation.class,
-				JZOperation.class, LDOperation.class, MLOperation.class, MVOperation.class, STOperation.class };
+				JZOperation.class, LDOperation.class, MLOperation.class, MVOperation.class, STOperation.class, SBOperation.class };
 		for (Class<? extends Operation> op : ops) {
 			if (op.getSimpleName().startsWith(opN)) {
 				Constructor<? extends Operation> opConst = op.getConstructor(int.class, Expression.class,
