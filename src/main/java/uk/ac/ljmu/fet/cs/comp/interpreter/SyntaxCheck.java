@@ -41,6 +41,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.SBOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public class SyntaxCheck implements Visitor {
 	private int constantIndex = UAMachine.constants;
@@ -162,4 +163,9 @@ public class SyntaxCheck implements Visitor {
 			throw new Error("Input parameter mismatch at line " + e.myloc);
 		}
 	}
+	
+	@Override
+	public void visit(VariableDefinition e) {
+	}
+
 }

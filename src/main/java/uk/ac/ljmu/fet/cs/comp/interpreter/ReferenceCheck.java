@@ -40,6 +40,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.SBOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public class ReferenceCheck implements Visitor {
 
@@ -135,4 +136,9 @@ public class ReferenceCheck implements Visitor {
 	public void visit(STOperation e) {
 		compositeDescent(e);
 	}
+	
+	@Override
+	public void visit(VariableDefinition e) {
+	}
+
 }

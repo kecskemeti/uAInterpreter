@@ -30,6 +30,6 @@ public class VariableDefinition extends Expression {
 	}
 	@Override
 	public void accept(Visitor v) {
-		//v.visit(this);
+		v.visit(this);
 	}
 }
