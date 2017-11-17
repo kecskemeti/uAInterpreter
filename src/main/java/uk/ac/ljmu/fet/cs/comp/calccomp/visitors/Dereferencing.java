@@ -42,7 +42,7 @@ import uk.ac.ljmu.fet.cs.comp.calccomp.tokens.VariableRef;
 public class Dereferencing implements CalcVisitor {
 
 	private boolean declare(VariableRef v) {
-		return false;
+		return v.getMyFunction().addVarInScope(v);
 	}
 
 	private void handleGenericStatement(Statement e) {
@@ -87,6 +87,12 @@ public class Dereferencing implements CalcVisitor {
 
 	@Override
 	public void visit(FunctionDeclarationStatement e) {
+		if (!declare(e.getCanonicalName())) {
+			e.throwError("Double declaration of the function " + e.target.myId);
+		}
+		if (e.left instanceof VariableRef) {
+			declare((VariableRef) e.left);
+		}
 	}
 
 	@Override
@@ -101,6 +107,15 @@ public class Dereferencing implements CalcVisitor {
 
 	@Override
 	public void visit(VariableRef e) {
+		Collection<String> whereToCheck = e.functionName ? CalcHelperStructures.alternatives.keySet()
+				: e.getMyFunction().inScopeVars.keySet();
+		if (!whereToCheck.contains(e.myId)) {
+			e.throwError("Using an unknown identifier for a " + (e.functionName ? "function" : "variable") + " called "
+					+ e.myId);
+		}
+		if (!e.functionName) {
+			e.memLoc = e.getMyFunction().inScopeVars.get(e.myId).memLoc;
+		}
 	}
 
 }

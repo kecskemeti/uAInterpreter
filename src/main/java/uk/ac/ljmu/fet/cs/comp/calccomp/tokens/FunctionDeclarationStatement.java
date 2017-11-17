@@ -38,6 +38,8 @@ public class FunctionDeclarationStatement extends Statement {
 	public HashMap<String, VariableRef> inScopeVars = new HashMap<>();
 	public ArrayList<Statement> inScopeStatements = new ArrayList<>();
 	private VariableRef canonicalName = null;
+	// frameIndex 0 = return address, frameIndex 1 = return value
+	private int frameIndex = 2;
 
 	public FunctionDeclarationStatement(int loc, VariableRef target, CalcExpression left, CalcExpression right) {
 		super(loc, target, left, right);
@@ -69,7 +71,24 @@ public class FunctionDeclarationStatement extends Statement {
 	 * @return
 	 */
 	public boolean addVarInScope(VariableRef v) {
+		if (!inScopeVars.containsKey(v.myId)) {
+			// First assignment
+			inScopeVars.put(v.myId, v);
+			if (v.myId.equals(target.myId)) {
+				// Handles assignments to function names
+				// i.e., return values
+				v.memLoc = returnValueIndicator;
+			} else if (!v.functionName) {
+				// Assigns the frame location
+				v.memLoc = frameIndex++;
+			}
+			return true;
+		}
 		return false;
+	}
+
+	public int getFrameIndex() {
+		return frameIndex;
 	}
 
 	@Override

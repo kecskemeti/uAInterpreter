@@ -48,6 +48,20 @@ public class ScopeManager implements CalcVisitor {
 	 */
 	@Override
 	public void visit(AlterScope e) {
+		if (toBeUsedFunction == null) {
+			e.throwError("Cannot enter a function scope without a function declaration first");
+		} else {
+			if (toBeUsedFunction.scopeOpensAt == null) {
+				currentFunction = toBeUsedFunction;
+				currentFunction.scopeOpensAt = e;
+			} else if (currentFunction.scopeClosesAt == null) {
+				currentFunction.scopeClosesAt = e;
+				currentFunction = CalcHelperStructures.globalFunction;
+				toBeUsedFunction = null;
+			} else {
+				e.throwError("Cannot reopen the scope for function " + currentFunction.target.myId);
+			}
+		}
 	}
 
 	/**
@@ -56,6 +70,17 @@ public class ScopeManager implements CalcVisitor {
 	 */
 	@Override
 	public void visit(FunctionDeclarationStatement e) {
+		if (toBeUsedFunction != null) {
+			e.throwError("Cannot declare a new function (named '" + e.target.myId
+					+ "') before closing the scope of the previous function (named '" + currentFunction.target.myId
+					+ "')");
+		}
+		toBeUsedFunction=e;
+		// Function name to the global scope
+		e.target.addToFunction(CalcHelperStructures.globalFunction);
+		e.getCanonicalName().addToFunction(CalcHelperStructures.globalFunction);
+		// Parameter to the local scope
+		e.left.addToFunction(e);
 	}
 
 	/**

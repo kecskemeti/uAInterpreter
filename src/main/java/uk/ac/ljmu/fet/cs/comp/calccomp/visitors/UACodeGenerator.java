@@ -62,6 +62,7 @@ public class UACodeGenerator implements CalcVisitor {
 	// Helpers for functions
 	private static final String funcAltCaseLabel = "funcAltCase";
 	private static final String endCallLabel = "endCall";
+	private VariableRef currentfunctionCallTarget=null;
 	private int casecounter = 0;
 	private int callcounter = 0;
 
@@ -82,6 +83,35 @@ public class UACodeGenerator implements CalcVisitor {
 	 */
 	@Override
 	public void visit(VariableRef e) {
+		// Adjust our pointer within the stack frame
+		generated.append("ADC -");
+		generated.append(e.memLoc);
+		generated.append(",D\n");
+		if (inLoad) {
+			generated.append("LDR D,");
+		} else {
+			generated.append("STR D,");
+		}
+		generated.append(targetReg);
+		generated.append("\n");
+		// Move the stack pointer back
+		generated.append("ADC ");
+		generated.append(e.memLoc);
+		generated.append(",D\n");
+		if (e.isReturnValue()) {
+			if (inLoad) {
+				throw new RuntimeException("This is supposedly the final store then why are we at load?");
+			}
+
+			// The top of the stack is the return address
+			generated.append("LDR D,A\n");
+			// We forget about our current frame
+			generated.append("ADC -");
+			generated.append(e.getMyFunction().getFrameIndex());
+			generated.append(",D\n");
+			// Return where we need to go
+			generated.append("JMR A\n");
+		}
 	}
 
 	private void loadToReg(CalcExpression ce, String target) {
@@ -218,6 +248,7 @@ public class UACodeGenerator implements CalcVisitor {
 		String endLabel = endCallLabel + callcounter++;
 		ArrayList<FunctionDeclarationStatement> myAlts = new ArrayList<>(
 				CalcHelperStructures.alternatives.get(((VariableRef) e.left).myId));
+		currentfunctionCallTarget=e.target;
 		// The input parameter of the call is loaded to register A
 		loadToReg(e.right, "A");
 		if (myAlts.size() != 1) {
@@ -260,6 +291,40 @@ public class UACodeGenerator implements CalcVisitor {
 	 * @param retLabel
 	 */
 	private void genUserFunctionCall(FunctionDeclarationStatement forFunc, String retLabel) {
+		String intermediateLabel = endCallLabel + "IM" + callcounter++;
+		// Adjust the stack for the function's stack frame
+		generated.append("ADC ");
+		generated.append(forFunc.getFrameIndex());
+		generated.append(",D\n");
+		// Stack looks like D-1= return value, D return loc
+		generated.append("MVC ");
+		generated.append(intermediateLabel);
+		generated.append(",B\n");
+		generated.append("STR D,B\n");
+		// Let's put the input (from reg A) on the just created stackframe (if there is
+		// any)
+		if (forFunc.left instanceof VariableRef) {
+			storeResult(forFunc.left);
+		}
+		// The frame is ready, we can jump to the function now.
+		generated.append("JMC ");
+		generated.append(forFunc.getCanonicalName().myId);
+		generated.append("\n");
+		insertLabel(intermediateLabel);
+		// We just need to recall the return value from the stack
+		// We load to A so we can store it with our store result function
+		int returnValueShift=forFunc.getFrameIndex()-FunctionDeclarationStatement.returnValueIndicator;
+		generated.append("ADC ");
+		generated.append(returnValueShift);
+		generated.append(",D\n");
+		generated.append("LDR D,A\n");
+		generated.append("ADC -");
+		generated.append(returnValueShift);
+		generated.append(",D\n");
+		// We store it where we need it and the call is now really done
+		storeResult(currentfunctionCallTarget);
+		generated.append("JMC ");
+		generated.append(retLabel);
 	}
 
 	@Override
@@ -272,7 +337,7 @@ public class UACodeGenerator implements CalcVisitor {
 			insertLabel("entry");
 			// The top of the stack is 10000
 			generated.append("MVC ");
-			generated.append(9999 /*+ CalcHelperStructures.globalFunction.frameIndex*/);
+			generated.append(9999 + CalcHelperStructures.globalFunction.getFrameIndex());
 			generated.append(",D\n");
 			// Store the initial cursor position (i.e., the top of the screen)
 			generated.append("MVC -80,A\n");
@@ -280,7 +345,12 @@ public class UACodeGenerator implements CalcVisitor {
 			generated.append(printLocVar);
 			generated.append(",A\n");
 		}
-		// Actual function contents need to be generated here
+		insertLabel(e.getCanonicalName().myId);
+		// Allows return to adjust the framesize back
+		// Generate the function itself:
+		for (Statement s : e.inScopeStatements) {
+			s.accept(this);
+		}
 		if (isGlobal) {
 			generated.append(endLabel);
 		}
