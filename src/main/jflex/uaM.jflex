@@ -70,7 +70,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.*;
 	}
 	
 	private void throwError(String text, Throwable e) {
-		throw new Error(text+" at line "+ yyline + " on character "+ yycolumn, e);
+		throw new Error(text+" at line "+ (yyline+1) + " on character "+ (yycolumn+1), e);
 	} 
 	
 	private void throwError(String text) {
