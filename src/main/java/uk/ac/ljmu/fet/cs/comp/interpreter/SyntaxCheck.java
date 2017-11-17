@@ -111,7 +111,7 @@ public class SyntaxCheck implements Visitor {
 
 	@Override
 	public void visit(SBOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
 	@Override
