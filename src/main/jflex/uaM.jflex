@@ -90,7 +90,7 @@ Integer = "-"?[:digit:]+
 Identifier = ([0-9]|[a-z])([0-9]|[A-z])*
 Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
 
-%state INSTSPEC PARSPEC STRINGSPEC PRESTRINGWS STRING NRSPEC LABSPEC NRPART
+%state INSTSPEC PARSPEC STRINGSPEC PRESTRINGWS STRING NRSPEC LABSPEC NRPART VARDEF
 
 %%
     <INSTSPEC> {
@@ -154,6 +154,15 @@ Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
     	{InLineWhiteSpace}    	 { }
     	[^]					  	 {	throwError("Illegal label specification"); }
     }
+    <VARDEF> {
+    	{Identifier}			 {  saveExpr(new Identifier(yyline,yytext())); }
+    	{LineTerminator}		 {  VariableDefinition vd=new VariableDefinition(yyline,left);
+    	    						switchToInitial();
+    								return vd; 
+    							 }
+    	{InLineWhiteSpace}		 { }
+    	[^]						 {  throwError("Illegal variable definition"); }
+    }
     <YYINITIAL> {
 	    {InstructionID}       	 {	yybegin(INSTSPEC);
 	    							opType=yytext();
@@ -161,6 +170,7 @@ Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
 	    						 }
     	"CONST"				  	 {	yybegin(STRINGSPEC); }
     	"CONNR"				  	 {	yybegin(NRSPEC); }
+    	"VAR"					 {  yybegin(VARDEF); }
     	{Identifier}		  	 {	saveExpr(new Identifier(yyline,yytext()));
     								yybegin(LABSPEC);
     							 }
