@@ -29,6 +29,12 @@ public enum ArtOp {
 			return a + b;
 		}
 	},
+	SB {
+		@Override
+		int realOP(int a, int b) {
+			return a - b;
+		}
+	},
 	ML {
 		@Override
 		int realOP(int a, int b) {

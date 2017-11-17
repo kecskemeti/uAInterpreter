@@ -30,6 +30,6 @@ public class SBOperation extends Operation {
 	}
 	@Override
 	public void accept(Visitor v) {
-		//v.visit(this);
+		v.visit(this);
 	}
 }

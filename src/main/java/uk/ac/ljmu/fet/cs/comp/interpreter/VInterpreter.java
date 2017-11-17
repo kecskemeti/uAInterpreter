@@ -37,6 +37,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.MVOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.NumberConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Operation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.SBOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
@@ -96,6 +97,11 @@ public class VInterpreter implements Visitor {
 		doArithmetic(e, ArtOp.AD);
 	}
 
+	@Override
+	public void visit(SBOperation e) {
+		doArithmetic(e, ArtOp.SB);
+	}
+	
 	@Override
 	public void visit(DVOperation e) {
 		doArithmetic(e, ArtOp.DV);
