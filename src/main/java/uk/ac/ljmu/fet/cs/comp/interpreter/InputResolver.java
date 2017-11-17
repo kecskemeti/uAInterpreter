@@ -129,6 +129,7 @@ public class InputResolver implements Visitor {
 
 	@Override
 	public void visit(VariableDefinition e) {
+		throwError(e);
 	}
 	
 }

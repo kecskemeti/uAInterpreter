@@ -162,6 +162,7 @@ public class VInterpreter implements Visitor {
 	
 	@Override
 	public void visit(VariableDefinition e) {
+		// do nothing
 	}
 
 }

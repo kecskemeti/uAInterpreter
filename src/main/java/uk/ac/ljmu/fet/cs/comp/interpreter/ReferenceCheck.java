@@ -133,6 +133,7 @@ public class ReferenceCheck implements Visitor {
 	
 	@Override
 	public void visit(VariableDefinition e) {
+		compositeDescent(e);
 	}
 
 }

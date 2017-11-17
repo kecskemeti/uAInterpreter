@@ -44,6 +44,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public class SyntaxCheck implements Visitor {
 	private int constantIndex = UAMachine.constants;
+	private int variableIndex = 29000;
 
 	@Override
 	public void visit(Identifier e) {
@@ -96,8 +97,12 @@ public class SyntaxCheck implements Visitor {
 				i.setMemLoc(constantIndex);
 				e.right.accept(this);
 			} else {
-				// Code labels
-				i.setMemLoc(e.left.myloc);
+				if (e instanceof VariableDefinition) {
+					i.setMemLoc(variableIndex++);
+				} else {
+					// Code labels
+					i.setMemLoc(e.left.myloc);
+				}
 			}
 		} else {
 			throw new Error("Non-identifier used in place of an id " + e.myloc);
@@ -169,9 +174,10 @@ public class SyntaxCheck implements Visitor {
 			}
 		}
 	}
-	
+
 	@Override
 	public void visit(VariableDefinition e) {
+		idDef(e);
 	}
 
 }
