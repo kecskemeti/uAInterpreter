@@ -106,7 +106,7 @@ public class SyntaxCheck implements Visitor {
 
 	@Override
 	public void visit(ADOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
 	@Override
@@ -116,40 +116,40 @@ public class SyntaxCheck implements Visitor {
 
 	@Override
 	public void visit(DVOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
 	@Override
 	public void visit(JMOperation e) {
-		visitOp(e);
+		visitOp(e,false);
 	}
 
 	@Override
 	public void visit(JZOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
 	@Override
 	public void visit(LDOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
 	@Override
 	public void visit(MLOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
 	@Override
 	public void visit(MVOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
 	@Override
 	public void visit(STOperation e) {
-		visitOp(e);
+		visitOp(e,true);
 	}
 
-	private void visitOp(Operation e) {
+	private void visitOp(Operation e, boolean doRightCheck) {
 		boolean invalidLeftExpr = false;
 		switch (e.kind) {
 		case R:
@@ -160,6 +160,18 @@ public class SyntaxCheck implements Visitor {
 		}
 		if (invalidLeftExpr) {
 			throw new Error("Input parameter mismatch at line " + e.myloc);
+		}
+		if(doRightCheck) {
+			if(e.right==null) {
+				throw new Error("Output parameter missing at line " + e.myloc);
+			}
+			if(!(e.right instanceof Register)) {
+				throw new Error("Output parameter is not a register at line " + e.myloc);
+			}
+		} else {
+			if(e.right!=null) {
+				throw new Error("Unexpected output parameter at line " + e.myloc);
+			}
 		}
 	}
 }
