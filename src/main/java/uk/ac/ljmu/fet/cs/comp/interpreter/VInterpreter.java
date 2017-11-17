@@ -40,6 +40,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public class VInterpreter implements Visitor {
 	private InputResolver ir = new InputResolver();
@@ -158,4 +159,9 @@ public class VInterpreter implements Visitor {
 		e.left.accept(ir);
 		UAMachine.programCounter = ir.getResolvedValue();
 	}
+	
+	@Override
+	public void visit(VariableDefinition e) {
+	}
+
 }

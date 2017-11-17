@@ -39,6 +39,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public class InputResolver implements Visitor {
 	private int resolvedValue;
@@ -126,4 +127,8 @@ public class InputResolver implements Visitor {
 		throw new Error("Unexpected string value as input spec at line " + e.myloc);
 	}
 
+	@Override
+	public void visit(VariableDefinition e) {
+	}
+	
 }
