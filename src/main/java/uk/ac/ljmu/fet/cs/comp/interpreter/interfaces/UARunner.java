@@ -20,23 +20,9 @@
  *  
  *  (C) Copyright 2017, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
  */
-package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
+package uk.ac.ljmu.fet.cs.comp.interpreter.interfaces;
 
-public abstract class ContainerExpression<T> extends Expression {
-	public final T containedValue;
-
-	public ContainerExpression(int loc, Expression l, Expression r, T val) {
-		super(loc, l, r);
-		containedValue = val;
-	}
-
-	@Override
-	public String toOriginalUA() {
-		return containedValue.toString();
-	}
-
-	@Override
-	public String toString() {
-		return "[" + super.toString() + "=>" + containedValue + "]";
-	}
+public interface UARunner {
+	void initialize();
+	void run();
 }

@@ -20,23 +20,21 @@
  *  
  *  (C) Copyright 2017, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
  */
-package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
+package uk.ac.ljmu.fet.cs.comp.interpreter;
 
-public abstract class ContainerExpression<T> extends Expression {
-	public final T containedValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.UARunner;
 
-	public ContainerExpression(int loc, Expression l, Expression r, T val) {
-		super(loc, l, r);
-		containedValue = val;
+public class RegularRunner implements UARunner {
+	private VInterpreter itp;
+
+	@Override
+	public void initialize() {
+		itp = new VInterpreter();
 	}
 
 	@Override
-	public String toOriginalUA() {
-		return containedValue.toString();
-	}
-
-	@Override
-	public String toString() {
-		return "[" + super.toString() + "=>" + containedValue + "]";
+	public void run() {
+		while (itp.interpret())
+			;
 	}
 }

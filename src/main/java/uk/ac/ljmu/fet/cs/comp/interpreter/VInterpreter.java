@@ -45,18 +45,22 @@ public class VInterpreter implements Visitor {
 	private InputResolver ir = new InputResolver();
 
 	public boolean interpret() {
-		Expression ex = null;
-		while ((ex = UAMachine.theProgram.get(UAMachine.programCounter++)) == null)
-			;
+		int pcBefore = UAMachine.programCounter;
+		Expression ex = UAMachine.theProgram.get(pcBefore);
 		try {
 			ex.accept(this);
+			if (pcBefore == UAMachine.programCounter) {
+				// There was no jump statement, we need to advance the pc ourselves
+				UAMachine.programCounter++;
+			}
 		} catch (Throwable t) {
 			throw new Error(t.getMessage() + " at line " + ex.myloc, t);
 		}
+		UAMachine.advancePCToNextNonEmpty();
 		return UAMachine.finalProgramAddress != UAMachine.programCounter;
 	}
-	// Erroneous behaviour
 
+	// Erroneous behaviour
 	@Override
 	public void visit(Identifier e) {
 		throw new Error("Unexpected statement at line " + e.myloc);
