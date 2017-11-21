@@ -33,6 +33,8 @@ public abstract class Expression implements Visited {
 		left = l;
 		right = r;
 	}
+	
+	public abstract String toOriginalUA();
 
 	@Override
 	public String toString() {

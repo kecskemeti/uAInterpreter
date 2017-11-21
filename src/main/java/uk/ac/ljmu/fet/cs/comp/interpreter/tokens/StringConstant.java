@@ -28,8 +28,14 @@ public class StringConstant extends Expression {
 	public StringConstant(int loc, Expression l, Expression r) {
 		super(loc, l, r);
 	}
+
 	@Override
 	public void accept(Visitor v) {
 		v.visit(this);
+	}
+
+	@Override
+	public String toOriginalUA() {
+		return "CONST " + left + " " + right;
 	}
 }

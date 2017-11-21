@@ -28,8 +28,14 @@ public class NumberConstant extends Expression {
 	public NumberConstant(int loc, Expression l, Expression r) {
 		super(loc, l, r);
 	}
+
 	@Override
 	public void accept(Visitor v) {
 		v.visit(this);
+	}
+
+	@Override
+	public String toOriginalUA() {
+		return "CONNR "+left+" "+right;
 	}
 }
