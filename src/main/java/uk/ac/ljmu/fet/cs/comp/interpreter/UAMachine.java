@@ -40,11 +40,16 @@ public class UAMachine {
 	public static HashMap<Integer, Expression> theProgram = new HashMap<>();
 	public static EnumMap<Register.RegType, Integer> regValues = new EnumMap<>(Register.RegType.class);
 	private static int[] memory = new int[totalMemory];
-	
+
 	static {
-		for(Register.RegType r:Register.RegType.values()) {
+		for (Register.RegType r : Register.RegType.values()) {
 			regValues.put(r, 0);
 		}
+	}
+
+	public static void advancePCToNextNonEmpty() {
+		while (theProgram.get(programCounter) == null)
+			programCounter++;
 	}
 
 	public static int getLocation(int loc) {

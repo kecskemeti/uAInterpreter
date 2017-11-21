@@ -37,6 +37,12 @@ public abstract class Operation extends Expression {
 		this.kind = kind;
 	}
 
+	@Override
+	public String toOriginalUA() {
+		return getClass().getSimpleName().substring(0, 2) + kind + " " + left.toOriginalUA()
+				+ (right == null ? "" : "," + right.toOriginalUA());
+	}
+
 	public static Operation opFactory(int loc, String opN, Expression l, Expression r, AttKind kind)
 			throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
