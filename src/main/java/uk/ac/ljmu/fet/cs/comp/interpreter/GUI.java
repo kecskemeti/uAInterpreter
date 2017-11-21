@@ -35,6 +35,7 @@ import javax.swing.JLabel;
 public class GUI {
 	private static JLabel[][] screen = new JLabel[UAMachine.screenHeight][UAMachine.screenWidth];
 	private static int pc = 0;
+	public static Thread mainThread;
 
 	public static void errorAndExit(String msg) {
 		System.err.println("Fatal error at line " + (pc + 1));
@@ -43,9 +44,16 @@ public class GUI {
 	}
 
 	public static void main(String[] args) throws Exception {
-		ParseUA.load(args[0]);
+		try {
+			ParseUA.load(args[0]);
+		} catch (Throwable e) {
+			System.err.println("Could not parse the file " + args[0]);
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
 		// Parsing complete. Here comes the GUI
 
+		mainThread = Thread.currentThread();
 		char c = 956;
 		JFrame mainWindow = new JFrame("Visualiser for the " + c + "A interpreter");
 		Container cp = mainWindow.getContentPane();
@@ -83,7 +91,7 @@ public class GUI {
 		new Thread() {
 			@Override
 			public void run() {
-				while (true) {
+				do {
 					for (int i = 0; i < UAMachine.screenHeight; i++) {
 						for (int j = 0; j < UAMachine.screenWidth; j++) {
 							screen[i][j].setText("" + (char) UAMachine.getLocation(i * 80 + j));
@@ -95,7 +103,7 @@ public class GUI {
 					} catch (InterruptedException iex) {
 						// ignore
 					}
-				}
+				} while(mainThread.isAlive());
 			}
 		}.start();
 
