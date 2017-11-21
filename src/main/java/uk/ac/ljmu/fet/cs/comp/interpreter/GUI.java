@@ -32,6 +32,8 @@ import java.awt.event.KeyListener;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.UARunner;
+
 public class GUI {
 	private static JLabel[][] screen = new JLabel[UAMachine.screenHeight][UAMachine.screenWidth];
 	private static int pc = 0;
@@ -110,9 +112,14 @@ public class GUI {
 		// GUI Ready now we can run the program
 
 		// Running the parsed program
-		VInterpreter itp = new VInterpreter();
-		while (itp.interpret())
-			;
+		UARunner runner=new RegularRunner();
+		if(args.length>1) {
+			if(args[1].equals("DEBUG")) {
+				runner=new Debugger();
+			}
+		}
+		runner.initialize();
+		runner.run();
 		mainWindow.setTitle(mainWindow.getTitle() + " - Terminated");
 	}
 
