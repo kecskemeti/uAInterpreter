@@ -94,16 +94,16 @@ public class GUI {
 			@Override
 			public void run() {
 				do {
-					for (int i = 0; i < UAMachine.screenHeight; i++) {
-						for (int j = 0; j < UAMachine.screenWidth; j++) {
-							screen[i][j].setText("" + (char) UAMachine.getLocation(i * 80 + j));
-						}
-					}
 					try {
 						// 60Hz refresh rate for the screen:
 						sleep(1000 / 60);
 					} catch (InterruptedException iex) {
 						// ignore
+					}
+					for (int i = 0; i < UAMachine.screenHeight; i++) {
+						for (int j = 0; j < UAMachine.screenWidth; j++) {
+							screen[i][j].setText("" + (char) UAMachine.getLocation(i * 80 + j));
+						}
 					}
 				} while(mainThread.isAlive());
 			}
