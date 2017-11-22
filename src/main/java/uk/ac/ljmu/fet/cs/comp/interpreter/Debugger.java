@@ -44,6 +44,7 @@ import javax.swing.JTextField;
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.UARunner;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.CodeLabel;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Identifier;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
 
 public class Debugger implements UARunner {
@@ -73,10 +74,11 @@ public class Debugger implements UARunner {
 	};
 
 	// Main window
-	JFrame debugWindow = new JFrame(((char)956)+"A Debug controls");
-	
+	JFrame debugWindow = new JFrame(((char) 956) + "A Debug controls");
+
 	// General info
 	private JLabel currLineNo = new JLabel();
+	private JLabel optionalLineInfo = new JLabel();
 	private JLabel currLineContent = new JLabel();
 
 	// Control buttons:
@@ -93,7 +95,20 @@ public class Debugger implements UARunner {
 	private void updateView() {
 		currLineNo.setText("" + UAMachine.programCounter);
 		Expression ex = UAMachine.theProgram.get(UAMachine.programCounter);
-		currLineContent.setText(ex == null ? "N/A" : ex.toOriginalUA());
+		String liText = "";
+		String clText = "N/A";
+		if (ex != null) {
+			clText = ex.toOriginalUA();
+			if (ex.left instanceof Identifier) {
+				int ml = ((Identifier) ex.left).getMemLoc();
+				if (ml > 10000) {
+					// the memory location is in either variable or constant space
+					liText = ";\"" + ex.left.toOriginalUA() + "\" is at memory address " + ml;
+				}
+			}
+		}
+		optionalLineInfo.setText(liText);
+		currLineContent.setText(clText);
 		updateRegisters();
 		noChangeAddressUpdate();
 	}
@@ -158,7 +173,7 @@ public class Debugger implements UARunner {
 		} while (itp.interpret());
 		debugWindow.dispose();
 	}
-	
+
 	private void switchControlsTo(boolean state) {
 		stContButton.setEnabled(state);
 		nextButton.setEnabled(state);
@@ -173,7 +188,7 @@ public class Debugger implements UARunner {
 			breakPointWaiter.notifyAll();
 		}
 	}
-	
+
 	private void switchToSuspended() {
 		try {
 			switchControlsTo(true);
@@ -185,7 +200,7 @@ public class Debugger implements UARunner {
 
 		}
 	}
-	
+
 	@Override
 	public void initialize() {
 		itp = new VInterpreter();
@@ -193,7 +208,7 @@ public class Debugger implements UARunner {
 		String initialLNr = "" + UAMachine.programCounter;
 
 		Container cp = debugWindow.getContentPane();
-		cp.setLayout(new GridLayout(28, 1, 0, 0));
+		cp.setLayout(new GridLayout(29, 1, 0, 0));
 		// Main controls:
 		JPanel topPanel = new JPanel();
 		topPanel.add(stContButton);
@@ -221,6 +236,7 @@ public class Debugger implements UARunner {
 		linePanel.add(currLineNo);
 		cp.add(linePanel);
 		cp.add(new JLabel("Current line:"));
+		cp.add(optionalLineInfo);
 		cp.add(currLineContent);
 
 		// Breakpoint controls:
