@@ -132,7 +132,9 @@ public class Debugger implements UARunner {
 		int shift = 0;
 		for (JLabel l : addrDetails) {
 			try {
-				l.setText("" + UAMachine.getLocation(currAddress + shift++));
+				int storedValue = UAMachine.getLocation(currAddress + shift++);
+				l.setText("" + storedValue
+						+ (storedValue < 128 && storedValue > 31 ? "   ['" + ((char) storedValue) + "']" : ""));
 			} catch (Throwable e) {
 				l.setText("N/A");
 			}
