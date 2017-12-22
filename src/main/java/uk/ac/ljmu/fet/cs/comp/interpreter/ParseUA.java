@@ -35,13 +35,16 @@ public class ParseUA {
 		Expression e = null;
 		// Pass 1, lexing, syntax and identifier detection
 		while ((e = lexer.yylex()) != null) {
+			e.setPC(UAMachine.theProgram.size());
+			UAMachine.theProgram.add(e);
 			e.accept(sc);
-			UAMachine.theProgram.put(e.myloc, e);
 		}
 		ReferenceCheck rc = new ReferenceCheck();
 		// Pass 2, identifier references
-		for (Expression ex : UAMachine.theProgram.values()) {
-			ex.accept(rc);
+		for (Expression ex : UAMachine.theProgram) {
+			if (ex != null) {
+				ex.accept(rc);
+			}
 		}
 		// Pass 3, final touches:
 		// Setting up the limits of program execution

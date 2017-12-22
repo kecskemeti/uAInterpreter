@@ -56,7 +56,6 @@ public class VInterpreter implements Visitor {
 		} catch (Throwable t) {
 			throw new Error(t.getMessage() + " at line " + ex.myloc, t);
 		}
-		UAMachine.advancePCToNextNonEmpty();
 		return UAMachine.finalProgramAddress != UAMachine.programCounter;
 	}
 

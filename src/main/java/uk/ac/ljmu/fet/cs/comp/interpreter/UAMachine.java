@@ -22,8 +22,8 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
@@ -37,7 +37,7 @@ public class UAMachine {
 	public static final int constants = 30000;
 	public static int programCounter = -1;
 	public static int finalProgramAddress = -1;
-	public static HashMap<Integer, Expression> theProgram = new HashMap<>();
+	public static ArrayList<Expression> theProgram = new ArrayList<>();
 	public static EnumMap<Register.RegType, Integer> regValues = new EnumMap<>(Register.RegType.class);
 	private static int[] memory = new int[totalMemory];
 
@@ -45,11 +45,6 @@ public class UAMachine {
 		for (Register.RegType r : Register.RegType.values()) {
 			regValues.put(r, 0);
 		}
-	}
-
-	public static void advancePCToNextNonEmpty() {
-		while (theProgram.get(programCounter) == null)
-			programCounter++;
 	}
 
 	public static int getLocation(int loc) {

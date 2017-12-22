@@ -26,6 +26,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visited;
 
 public abstract class Expression implements Visited {
 	public final int myloc;
+	private int myPC;
 	public final Expression left, right;
 
 	public Expression(int loc, Expression l, Expression r) {
@@ -33,12 +34,24 @@ public abstract class Expression implements Visited {
 		left = l;
 		right = r;
 	}
-	
+
+	public void setPC(int pc) {
+		myPC = pc;
+		if (left != null)
+			left.setPC(pc);
+		if (right != null)
+			right.setPC(pc);
+	}
+
+	public int getPC() {
+		return myPC;
+	}
+
 	public abstract String toOriginalUA();
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + "(loc: " +myloc + " L: "+(left == null ? "-" : left) + "," + " R: "+(right == null ? "-" : right)
-				+ ")";
+		return this.getClass().getSimpleName() + "(loc: " + myloc + " L: " + (left == null ? "-" : left) + "," + " R: "
+				+ (right == null ? "-" : right) + ")";
 	}
 }
