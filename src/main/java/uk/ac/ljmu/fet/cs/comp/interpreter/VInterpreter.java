@@ -45,14 +45,9 @@ public class VInterpreter implements Visitor {
 	private InputResolver ir = new InputResolver();
 
 	public boolean interpret() {
-		int pcBefore = UAMachine.programCounter;
-		Expression ex = UAMachine.theProgram.get(pcBefore);
+		Expression ex = UAMachine.theProgram.get(UAMachine.programCounter++);
 		try {
 			ex.accept(this);
-			if (pcBefore == UAMachine.programCounter) {
-				// There was no jump statement, we need to advance the pc ourselves
-				UAMachine.programCounter++;
-			}
 		} catch (Throwable t) {
 			throw new Error(t.getMessage() + " at line " + ex.myloc, t);
 		}
@@ -158,7 +153,7 @@ public class VInterpreter implements Visitor {
 	}
 
 	private void setReg(Operation e, int val) {
-		UAMachine.regValues.put(((Register) e.right).containedValue, val);
+		UAMachine.regValues[((Register) e.right).containedValue.ordinal()] = val;
 	}
 
 	private void uncJump(Operation e) {

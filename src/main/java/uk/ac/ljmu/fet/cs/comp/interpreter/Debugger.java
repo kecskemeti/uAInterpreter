@@ -146,7 +146,7 @@ public class Debugger implements UARunner {
 
 	private void updateRegisters() {
 		for (Register.RegType currReg : Register.RegType.values()) {
-			regLabelMap.get(currReg).setText("" + UAMachine.regValues.get(currReg));
+			regLabelMap.get(currReg).setText("" + UAMachine.regValues[currReg.ordinal()]);
 		}
 	}
 

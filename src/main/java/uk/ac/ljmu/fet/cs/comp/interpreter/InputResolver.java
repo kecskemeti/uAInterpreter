@@ -104,7 +104,7 @@ public class InputResolver implements Visitor {
 
 	@Override
 	public void visit(Register e) {
-		resolvedValue = UAMachine.regValues.get(e.containedValue);
+		resolvedValue = UAMachine.regValues[e.containedValue.ordinal()];
 	}
 
 	@Override
