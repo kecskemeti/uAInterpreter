@@ -23,6 +23,7 @@
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.UARunner;
+import uk.ac.ljmu.fet.cs.comp.ub.VInterpreter;
 
 public class RegularRunner implements UARunner {
 	private VInterpreter itp;

@@ -25,21 +25,21 @@ package uk.ac.ljmu.fet.cs.comp.interpreter;
 public enum ArtOp {
 	AD {
 		@Override
-		int realOP(int a, int b) {
+		public int realOP(int a, int b) {
 			return a + b;
 		}
 	},
 	ML {
 		@Override
-		int realOP(int a, int b) {
+		public int realOP(int a, int b) {
 			return a * b;
 		}
 	},
 	DV {
 		@Override
-		int realOP(int a, int b) {
+		public int realOP(int a, int b) {
 			return a / b;
 		}
 	};
-	abstract int realOP(int a, int b);
+	public abstract int realOP(int a, int b);
 }

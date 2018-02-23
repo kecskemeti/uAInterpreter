@@ -1,34 +1,34 @@
 /*
  *  ========================================================================
- *  uA Interpreter
+ *  uB Interpreter
  *  ========================================================================
  *  
- *  This file is part of ua Interpreter.
+ *  This file is part of uB Interpreter.
  *  
- *  ua Interpreter is free software: you can redistribute it and/or
+ *  uB Interpreter is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or (at
  *  your option) any later version.
  *  
- *  ua Interpreter is distributed in the hope that it will be useful,
+ *  uB Interpreter is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License along
- *  with ua Interpreter.  If not, see <http://www.gnu.org/licenses/>.
+ *  with uB Interpreter.  If not, see <http://www.gnu.org/licenses/>.
  *  
- *  (C) Copyright 2017, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
+ *  (C) Copyright 2018, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
  */
-package uk.ac.ljmu.fet.cs.comp.interpreter;
+package uk.ac.ljmu.fet.cs.comp.ub;
 
 import java.util.EnumMap;
 import java.util.HashMap;
 
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBEx;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBReg;
 
-public class UAMachine {
+public class UBMachine {
 	public static final int screenWidth = 80;
 	public static final int screenHeight = 25;
 	public static final int totalMemory = 50000;
@@ -37,12 +37,12 @@ public class UAMachine {
 	public static final int constants = 30000;
 	public static int programCounter = -1;
 	public static int finalProgramAddress = -1;
-	public static HashMap<Integer, Expression> theProgram = new HashMap<>();
-	public static EnumMap<Register.RegType, Integer> regValues = new EnumMap<>(Register.RegType.class);
+	public static HashMap<Integer, UBEx> theProgram = new HashMap<>();
+	public static EnumMap<UBReg.RegType, Integer> regValues = new EnumMap<>(UBReg.RegType.class);
 	private static int[] memory = new int[totalMemory];
 
 	static {
-		for (Register.RegType r : Register.RegType.values()) {
+		for (UBReg.RegType r : UBReg.RegType.values()) {
 			regValues.put(r, 0);
 		}
 	}

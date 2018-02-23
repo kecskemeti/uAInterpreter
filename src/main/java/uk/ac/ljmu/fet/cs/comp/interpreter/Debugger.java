@@ -42,10 +42,12 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.UARunner;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.CodeLabel;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Identifier;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
+import uk.ac.ljmu.fet.cs.comp.ub.UBMachine;
+import uk.ac.ljmu.fet.cs.comp.ub.VInterpreter;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBEx;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBId;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBLab;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBReg;
 
 public class Debugger implements UARunner {
 	private VInterpreter itp;
@@ -74,7 +76,7 @@ public class Debugger implements UARunner {
 	};
 
 	// Main window
-	JFrame debugWindow = new JFrame(((char) 956) + "A Debug controls");
+	JFrame debugWindow = new JFrame(((char) 956) + "B Debug controls");
 
 	// General info
 	private JLabel currLineNo = new JLabel();
@@ -93,17 +95,17 @@ public class Debugger implements UARunner {
 	}
 
 	private void updateView() {
-		currLineNo.setText("" + UAMachine.programCounter);
-		Expression ex = UAMachine.theProgram.get(UAMachine.programCounter);
+		currLineNo.setText("" + UBMachine.programCounter);
+		UBEx ex = UBMachine.theProgram.get(UBMachine.programCounter);
 		String liText = "";
 		String clText = "N/A";
 		if (ex != null) {
-			clText = ex.toOriginalUA();
-			if (ex.left instanceof Identifier) {
-				int ml = ((Identifier) ex.left).getMemLoc();
+			clText = ex.toOriginalUB();
+			if (ex.left instanceof UBId) {
+				int ml = ((UBId) ex.left).getMemLoc();
 				if (ml > 10000) {
 					// the memory location is in either variable or constant space
-					liText = ";\"" + ex.left.toOriginalUA() + "\" is at memory address " + ml;
+					liText = ";\"" + ex.left.toOriginalUB() + "\" is at memory address " + ml;
 				}
 			}
 		}
@@ -132,7 +134,7 @@ public class Debugger implements UARunner {
 		int shift = 0;
 		for (JLabel l : addrDetails) {
 			try {
-				int storedValue = UAMachine.getLocation(currAddress + shift++);
+				int storedValue = UBMachine.getLocation(currAddress + shift++);
 				l.setText("" + storedValue
 						+ (storedValue < 128 && storedValue > 31 ? "   ['" + ((char) storedValue) + "']" : ""));
 			} catch (Throwable e) {
@@ -142,11 +144,11 @@ public class Debugger implements UARunner {
 	}
 
 	// Register visualisation
-	private EnumMap<Register.RegType, JLabel> regLabelMap = new EnumMap<>(Register.RegType.class);
+	private EnumMap<UBReg.RegType, JLabel> regLabelMap = new EnumMap<>(UBReg.RegType.class);
 
 	private void updateRegisters() {
-		for (Register.RegType currReg : Register.RegType.values()) {
-			regLabelMap.get(currReg).setText("" + UAMachine.regValues.get(currReg));
+		for (UBReg.RegType currReg : UBReg.RegType.values()) {
+			regLabelMap.get(currReg).setText("" + UBMachine.regValues.get(currReg));
 		}
 	}
 
@@ -157,12 +159,12 @@ public class Debugger implements UARunner {
 			if (numLinesAllowed == 0) {
 				numLinesAllowed = -1;
 				doBreakPoint = true;
-			} else if (UAMachine.programCounter == Integer.parseInt(lineNoBR.getText().trim())) {
+			} else if (UBMachine.programCounter == Integer.parseInt(lineNoBR.getText().trim())) {
 				doBreakPoint = true;
 			} else {
-				Expression ex = UAMachine.theProgram.get(UAMachine.programCounter);
-				if (ex instanceof CodeLabel) {
-					String clabel = ((CodeLabel) ex).left.toOriginalUA();
+				UBEx ex = UBMachine.theProgram.get(UBMachine.programCounter);
+				if (ex instanceof UBLab) {
+					String clabel = ((UBLab) ex).left.toOriginalUB();
 					if (clabel.equals(labelBR.getText().trim())) {
 						doBreakPoint = true;
 					}
@@ -207,7 +209,7 @@ public class Debugger implements UARunner {
 	public void initialize() {
 		itp = new VInterpreter();
 
-		String initialLNr = "" + UAMachine.programCounter;
+		String initialLNr = "" + UBMachine.programCounter;
 
 		Container cp = debugWindow.getContentPane();
 		cp.setLayout(new GridLayout(29, 1, 0, 0));
@@ -259,7 +261,7 @@ public class Debugger implements UARunner {
 		// Register info:
 		cp.add(new JSeparator());
 		cp.add(new JLabel("Register inspector:"));
-		for (Register.RegType currReg : Register.RegType.values()) {
+		for (UBReg.RegType currReg : UBReg.RegType.values()) {
 			JPanel regPanel = new JPanel();
 			regPanel.add(new JLabel(currReg + "="));
 			JLabel regData = new JLabel();

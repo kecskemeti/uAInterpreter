@@ -1,44 +1,44 @@
 /*
  *  ========================================================================
- *  uA Interpreter
+ *  uB Interpreter
  *  ========================================================================
  *  
- *  This file is part of ua Interpreter.
+ *  This file is part of uB Interpreter.
  *  
- *  ua Interpreter is free software: you can redistribute it and/or
+ *  uB Interpreter is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or (at
  *  your option) any later version.
  *  
- *  ua Interpreter is distributed in the hope that it will be useful,
+ *  uB Interpreter is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License along
- *  with ua Interpreter.  If not, see <http://www.gnu.org/licenses/>.
+ *  with uB Interpreter.  If not, see <http://www.gnu.org/licenses/>.
  *  
- *  (C) Copyright 2017, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
+ *  (C) Copyright 2018, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
  */
-package uk.ac.ljmu.fet.cs.comp.interpreter.generated;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.*;
+package uk.ac.ljmu.fet.cs.comp.ub.generated;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.*;
 
 %%
 
 %public
-%class LexuA
+%class LexuB
 %line
 %column
-%type Expression
+%type UBEx
 
 %{
 	StringBuffer string=new StringBuffer();
 	String opType=null;
-	Operation.AttKind inspec=null;
-	Expression left, right;
+	UBEx left, right;
 	boolean doLeft=true;
+	boolean addrModifier=false;
 	
-	private void saveExpr(Expression e) {
+	private void saveExpr(UBEx e) {
 		if((doLeft&&left!=null)||(!doLeft&&right!=null)) {
 			throwError("Too complex parameter spec");
 		}
@@ -47,26 +47,38 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.*;
 		} else {
 			right=e;
 		}
+		addrModifier=false;
 	}
 	
 	private void switchToInitial() {
 		opType=null;
 		left=right=null;
-		inspec=null;
 		doLeft=true;
 		string.setLength(0);
 		yybegin(YYINITIAL);
 	}
 	
-	private Operation genOperation() {
+	private UBInst genOperation() {
 		try {
-			Operation o=Operation.opFactory(yyline, opType, left, right, inspec);
+			UBInst o=UBInst.instFactory(yyline, opType, (UBContainer) left, (UBContainer) right);
 			switchToInitial();
 			return o;
 		} catch(Exception e) {
 			throwError("Illegal instruction specification",e);
 			return null;
 		}
+	}
+	
+	private UBEx genNR() {
+		UBNr nc=new UBNr(yyline, left, right);
+    	switchToInitial();
+    	return nc;
+	}
+	
+	private UBEx genST() {
+		UBSc sc = new UBSc(yyline, left, new UBSt(yyline, string.toString()));
+      	switchToInitial();
+      	return sc;
 	}
 	
 	private void throwError(String text, Throwable e) {
@@ -82,29 +94,20 @@ LineTerminator    = \r|\n|\r\n
 InputCharacter    = [^\r\n]
 InLineWhiteSpace  = [ \t\f]
 WhiteSpace        = {LineTerminator} | {InLineWhiteSpace}
-
-InstructionID = "LD" | "ST" | "JZ" | "JM" | "AD" | "ML" | "DV" | "MV"
-InputType = [CR]
-Register = [ABCD]
+InstructionID = "COND" | "JUMP" | "ADDI" | "MULI" | "DIVI" | "MOVE"
 Integer = "-"?[:digit:]+
-Identifier = ([0-9]|[a-z])([0-9]|[A-z])*
-Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
+Register = [ABCD]
+Identifier = [a-z]([0-9]|[A-z])*
+Comment = "~" {InputCharacter}* {LineTerminator}?
 
-%state INSTSPEC PARSPEC STRINGSPEC PRESTRINGWS STRING NRSPEC LABSPEC NRPART
+%state PARSPEC STRINGSPEC PRESTRINGWS STRING NRSPEC LABSPEC NRPART
 
 %%
-    <INSTSPEC> {
-        {InputType}			 	 { 	yybegin(PARSPEC);
-        							inspec=Operation.AttKind.valueOf(yytext());
-        							left=right=null;
-        							doLeft=true;
-        						 }
-    	[^]					 	 {	throwError("Illegal input type spec"); }
-    }
     <PARSPEC> {
-    	{Register}	          	 {	saveExpr(new Register(yyline,yytext())); }
-    	{Integer}			  	 {	saveExpr(new IntNumber(yyline,yytext())); }
-    	{Identifier}	      	 {	saveExpr(new Identifier(yyline,yytext())); }
+    	"@"						 {  addrModifier=true; }
+    	{Register}	          	 {	saveExpr(new UBReg(yyline,yytext(),addrModifier)); }
+    	{Integer}			  	 {	saveExpr(new UBInt(yyline,yytext(),addrModifier)); }
+    	{Identifier}	      	 {	saveExpr(new UBId(yyline,yytext(),addrModifier)); }
     	","				      	 {	doLeft=false; }
     	{InLineWhiteSpace}	  	 { }
     	{LineTerminator}      	 {	return genOperation(); }
@@ -114,7 +117,7 @@ Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
     <STRINGSPEC>   {
     	{Identifier}		 	 { 	yybegin(PRESTRINGWS);
     								string.setLength(0);
-    								saveExpr(new Identifier(yyline,yytext()));
+    								saveExpr(new UBId(yyline,yytext()));
     								doLeft=false;
     							 }
     	{InLineWhiteSpace}   	 { }
@@ -125,45 +128,41 @@ Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
     	[^]						 { yybegin(STRING); string.append(yytext());}
     }
     <STRING> {
-      [\n\r]                     {	StringConstant sc = new StringConstant(yyline, left, new StringValue(yyline, string.toString()));
-      								switchToInitial();
-      								return sc;
-      							 }
+      [\n\r]                     {	return genST(); }
+      <<EOF>>					 {  return genST(); }
       \\t                        {	string.append('\t'); }
       [^\n\r]+                   {	string.append( yytext() ); }
     }
     <NRSPEC> {
-    	{Identifier}		  	 {	saveExpr(new Identifier(yyline,yytext())); doLeft=false; yybegin(NRPART); }
+    	{Identifier}		  	 {	saveExpr(new UBId(yyline,yytext())); doLeft=false; yybegin(NRPART); }
     	{InLineWhiteSpace}    	 { }
     	[^]					  	 {	throwError("Illegal number constant id"); }
     }
     <NRPART> {
-    	{Integer}			  	 {	saveExpr(new IntNumber(yyline,yytext())); }
+    	{Integer}			  	 {	saveExpr(new UBInt(yyline,yytext())); }
     	{InLineWhiteSpace}    	 { }
-    	{LineTerminator}	  	 {	NumberConstant nc=new NumberConstant(yyline, left, right);
-    								switchToInitial();
-    								return nc;
-    							 }
+    	{LineTerminator}	  	 {	return genNR(); }
+    	<<EOF>>					 {  return genNR(); }
     	[^]					  	 {	throwError("Illegal number constant value"); }
     }
     <LABSPEC> {
-    	":"					  	 {	CodeLabel cl = new CodeLabel(yyline, left, right);
-    								switchToInitial();
-    								return cl;
-    							 }
+    	{Identifier}			 {  
+    								UBLab lab= new UBLab(yyline, new UBId(yyline,yytext()), null);
+    								yybegin(YYINITIAL);
+    								return lab; }
     	{InLineWhiteSpace}    	 { }
     	[^]					  	 {	throwError("Illegal label specification"); }
     }
     <YYINITIAL> {
-	    {InstructionID}       	 {	yybegin(INSTSPEC);
+	    {InstructionID}       	 {	yybegin(PARSPEC);
 	    							opType=yytext();
-	    							inspec=null;
+        							left=right=null;
+        							doLeft=true;
+        							addrModifier=false;
 	    						 }
-    	"CONST"				  	 {	yybegin(STRINGSPEC); }
-    	"CONNR"				  	 {	yybegin(NRSPEC); }
-    	{Identifier}		  	 {	saveExpr(new Identifier(yyline,yytext()));
-    								yybegin(LABSPEC);
-    							 }
+    	"STR"				  	 {	yybegin(STRINGSPEC); }
+    	"NUMBER"			  	 {	yybegin(NRSPEC); }
+    	":"						 {  yybegin(LABSPEC); }
         {Comment}|{WhiteSpace}	 {  }
     }
     

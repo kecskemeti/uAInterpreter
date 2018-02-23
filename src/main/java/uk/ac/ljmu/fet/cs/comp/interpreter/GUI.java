@@ -33,9 +33,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.UARunner;
+import uk.ac.ljmu.fet.cs.comp.ub.ParseUB;
+import uk.ac.ljmu.fet.cs.comp.ub.UBMachine;
 
 public class GUI {
-	private static JLabel[][] screen = new JLabel[UAMachine.screenHeight][UAMachine.screenWidth];
+	private static JLabel[][] screen = new JLabel[UBMachine.screenHeight][UBMachine.screenWidth];
 	private static int pc = 0;
 	public static Thread mainThread;
 
@@ -47,21 +49,22 @@ public class GUI {
 
 	public static void main(String[] args) throws Exception {
 		try {
-			ParseUA.load(args[0]);
+			ParseUB.load(args[0]);
 		} catch (Throwable e) {
 			System.err.println("Could not parse the file " + args[0]);
 			System.err.println(e.getMessage());
+			e.printStackTrace();
 			System.exit(1);
 		}
 		// Parsing complete. Here comes the GUI
 
 		mainThread = Thread.currentThread();
 		char c = 956;
-		JFrame mainWindow = new JFrame("Visualiser for the " + c + "A interpreter");
+		JFrame mainWindow = new JFrame("Visualiser for the " + c + "B interpreter");
 		Container cp = mainWindow.getContentPane();
-		cp.setLayout(new GridLayout(UAMachine.screenHeight, UAMachine.screenWidth, 0, 0));
-		for (int i = 0; i < UAMachine.screenHeight; i++) {
-			for (int j = 0; j < UAMachine.screenWidth; j++) {
+		cp.setLayout(new GridLayout(UBMachine.screenHeight, UBMachine.screenWidth, 0, 0));
+		for (int i = 0; i < UBMachine.screenHeight; i++) {
+			for (int j = 0; j < UBMachine.screenWidth; j++) {
 				screen[i][j] = new JLabel(" ");
 				screen[i][j].setFont(Font.getFont(Font.MONOSPACED));
 				screen[i][j].setPreferredSize(new Dimension(13, 13));
@@ -87,7 +90,7 @@ public class GUI {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				e.consume();
-				UAMachine.setKeyboard(e.getKeyCode());
+				UBMachine.setKeyboard(e.getKeyCode());
 			}
 		});
 		new Thread() {
@@ -100,9 +103,9 @@ public class GUI {
 					} catch (InterruptedException iex) {
 						// ignore
 					}
-					for (int i = 0; i < UAMachine.screenHeight; i++) {
-						for (int j = 0; j < UAMachine.screenWidth; j++) {
-							screen[i][j].setText("" + (char) UAMachine.getLocation(i * 80 + j));
+					for (int i = 0; i < UBMachine.screenHeight; i++) {
+						for (int j = 0; j < UBMachine.screenWidth; j++) {
+							screen[i][j].setText("" + (char) UBMachine.getLocation(i * 80 + j));
 						}
 					}
 				} while(mainThread.isAlive());

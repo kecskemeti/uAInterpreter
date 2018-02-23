@@ -1,40 +1,41 @@
 /*
  *  ========================================================================
- *  uA Interpreter
+ *  uB Interpreter
  *  ========================================================================
  *  
- *  This file is part of ua Interpreter.
+ *  This file is part of uB Interpreter.
  *  
- *  ua Interpreter is free software: you can redistribute it and/or
+ *  uB Interpreter is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or (at
  *  your option) any later version.
  *  
- *  ua Interpreter is distributed in the hope that it will be useful,
+ *  uB Interpreter is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License along
- *  with ua Interpreter.  If not, see <http://www.gnu.org/licenses/>.
+ *  with uB Interpreter.  If not, see <http://www.gnu.org/licenses/>.
  *  
- *  (C) Copyright 2017, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
+ *  (C) Copyright 2018, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
  */
-package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
+package uk.ac.ljmu.fet.cs.comp.ub.tokens;
 
-import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visited;
+import uk.ac.ljmu.fet.cs.comp.ub.interfaces.Visited;
 
-public abstract class Expression implements Visited {
+public abstract class UBEx<A extends UBEx, B extends UBEx> implements Visited {
 	public final int myloc;
-	public final Expression left, right;
+	public final A left;
+	public final B right;
 
-	public Expression(int loc, Expression l, Expression r) {
+	public UBEx(int loc, A l, B r) {
 		myloc = loc + 1;
 		left = l;
 		right = r;
 	}
 	
-	public abstract String toOriginalUA();
+	public abstract String toOriginalUB();
 
 	@Override
 	public String toString() {

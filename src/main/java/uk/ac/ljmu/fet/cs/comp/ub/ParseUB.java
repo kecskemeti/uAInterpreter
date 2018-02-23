@@ -1,59 +1,59 @@
 /*
  *  ========================================================================
- *  uA Interpreter
+ *  uB Interpreter
  *  ========================================================================
  *  
- *  This file is part of ua Interpreter.
+ *  This file is part of uB Interpreter.
  *  
- *  ua Interpreter is free software: you can redistribute it and/or
+ *  uB Interpreter is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or (at
  *  your option) any later version.
  *  
- *  ua Interpreter is distributed in the hope that it will be useful,
+ *  uB Interpreter is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *  General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License along
- *  with ua Interpreter.  If not, see <http://www.gnu.org/licenses/>.
+ *  with uB Interpreter.  If not, see <http://www.gnu.org/licenses/>.
  *  
- *  (C) Copyright 2017, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
+ *  (C) Copyright 2018, Gabor Kecskemeti (g.kecskemeti@ljmu.ac.uk)
  */
-package uk.ac.ljmu.fet.cs.comp.interpreter;
+package uk.ac.ljmu.fet.cs.comp.ub;
 
 import java.io.FileReader;
 
-import uk.ac.ljmu.fet.cs.comp.interpreter.generated.LexuA;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
-import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Identifier;
+import uk.ac.ljmu.fet.cs.comp.ub.generated.LexuB;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBEx;
+import uk.ac.ljmu.fet.cs.comp.ub.tokens.UBId;
 
-public class ParseUA {
+public class ParseUB {
 	public static void load(String file) throws Exception {
-		LexuA lexer = new LexuA(new FileReader(file));
+		LexuB lexer = new LexuB(new FileReader(file));
 		SyntaxCheck sc = new SyntaxCheck();
-		Expression e = null;
+		UBEx e = null;
 		// Pass 1, lexing, syntax and identifier detection
 		while ((e = lexer.yylex()) != null) {
 			e.accept(sc);
-			UAMachine.theProgram.put(e.myloc, e);
+			UBMachine.theProgram.put(e.myloc, e);
 		}
 		ReferenceCheck rc = new ReferenceCheck();
 		// Pass 2, identifier references
-		for (Expression ex : UAMachine.theProgram.values()) {
+		for (UBEx ex : UBMachine.theProgram.values()) {
 			ex.accept(rc);
 		}
 		// Pass 3, final touches:
 		// Setting up the limits of program execution
-		e = SymbolTable.globalTable.get("entry");
+		e = SymbolTable.globalTable.get("start");
 		if (e == null) {
-			throw new Error("No program entry label is defined");
+			throw new Error("There is no place to start the program");
 		}
-		UAMachine.programCounter = ((Identifier) e.left).getMemLoc();
-		e = SymbolTable.globalTable.get("exit");
+		UBMachine.programCounter = ((UBId) e.left).getMemLoc();
+		e = SymbolTable.globalTable.get("stop");
 		if (e == null) {
-			throw new Error("No program termination label is defined");
+			throw new Error("No label for the program's final line");
 		}
-		UAMachine.finalProgramAddress = ((Identifier) e.left).getMemLoc();
+		UBMachine.finalProgramAddress = ((UBId) e.left).getMemLoc();
 	}
 }
