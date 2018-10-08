@@ -48,7 +48,7 @@ public class UAMachine {
 	}
 
 	public static void setLocation(int loc, int val) {
-		if ((loc >= variables && loc < constants) || loc < keyboard) {
+		if ((loc >= variables && loc < constants) || loc <= keyboard) {
 			memory[loc] = val;
 		} else {
 			throw new Error("Illegal memory write operation to location (" + loc + ")");
