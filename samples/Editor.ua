@@ -79,7 +79,7 @@
 ;      See the labels visualiseCursor, dodelay, bufferedTocursor
 
 CONST cursorShape -/|\
-CONNR delay 200000
+CONNR delay 400000
 
 
 entry:
@@ -88,6 +88,7 @@ MVC cursorShape,A
 STC 20003,A
 MVC 10000,A
 STC 20000,A
+MVC 0,A
 
 mainLoop:
 MVR A,B
