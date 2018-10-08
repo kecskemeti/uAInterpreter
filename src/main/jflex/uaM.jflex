@@ -60,7 +60,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.*;
 	
 	private Operation genOperation() {
 		try {
-			Operation o=Operation.opFactory(yyline, opType, left, right, inspec);
+			Operation o=Operation.opFactory(yyline, opType, left, (Register)right, inspec);
 			switchToInitial();
 			return o;
 		} catch(Exception e) {
@@ -147,7 +147,7 @@ Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
     	[^]					  	 {	throwError("Illegal number constant value"); }
     }
     <LABSPEC> {
-    	":"					  	 {	CodeLabel cl = new CodeLabel(yyline, left, right);
+    	":"					  	 {	CodeLabel cl = new CodeLabel(yyline, (Identifier)left, right);
     								switchToInitial();
     								return cl;
     							 }

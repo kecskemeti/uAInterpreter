@@ -22,24 +22,14 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
-public enum ArtOp {
-	AD {
-		@Override
-		int realOP(int a, int b) {
-			return a + b;
-		}
-	},
-	ML {
-		@Override
-		int realOP(int a, int b) {
-			return a * b;
-		}
-	},
-	DV {
-		@Override
-		int realOP(int a, int b) {
-			return a / b;
-		}
-	};
-	abstract int realOP(int a, int b);
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Operation;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
+
+public abstract class ArithmeticOperation extends Operation {
+	public ArithmeticOperation(int loc, Expression l, Register r, AttKind k) {
+		super(loc, l, r, k);
+	}
+
+	public abstract int doArithm(int a, int b);
 }

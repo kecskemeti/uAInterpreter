@@ -23,7 +23,7 @@
 package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 
 public abstract class ContainerExpression<T> extends Expression {
-	public final T containedValue;
+	public T containedValue;
 
 	public ContainerExpression(int loc, Expression l, Expression r, T val) {
 		super(loc, l, r);

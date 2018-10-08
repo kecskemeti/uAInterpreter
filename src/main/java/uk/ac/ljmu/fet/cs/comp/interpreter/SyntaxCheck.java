@@ -82,24 +82,20 @@ public class SyntaxCheck implements Visitor {
 		}
 	}
 
-	private void idDef(Expression e) {
-		if (e.left instanceof Identifier) {
-			Identifier i = (Identifier) e.left;
-			if (SymbolTable.globalTable.containsKey(i.containedValue)) {
-				throw new Error("Identifier name '" + i.containedValue + "' already in use current use at line "
-						+ i.myloc + " previous use at line " + SymbolTable.globalTable.get(i.containedValue).myloc);
-			}
-			SymbolTable.globalTable.put(i.containedValue, e);
-			if (e.right != null) {
-				// Constant mapping
-				i.setMemLoc(constantIndex);
-				e.right.accept(this);
-			} else {
-				// Code labels
-				i.setMemLoc(e.left.getPC());
-			}
+	private void idDef(Expression<Identifier, Expression> e) {
+		String idStr = e.left.containedValue;
+		Expression pr=SymbolTable.globalTable.put(idStr,e);
+		if (pr!=null) {
+			throw new Error("Identifier name '" + idStr + "' already in use current use at line " + e.left.myloc
+					+ " previous use at line " + pr.myloc);
+		}
+		if (e.right != null) {
+			// Constant mapping
+			e.left.setMemLoc(constantIndex);
+			e.right.accept(this);
 		} else {
-			throw new Error("Non-identifier used in place of an id " + e.myloc);
+			// Code labels
+			e.left.setMemLoc(e.left.getPC());
 		}
 	}
 

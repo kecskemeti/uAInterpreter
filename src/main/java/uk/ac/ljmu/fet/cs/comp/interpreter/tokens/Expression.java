@@ -24,12 +24,13 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visited;
 
-public abstract class Expression implements Visited {
+public abstract class Expression<L extends Expression, R extends Expression> implements Visited {
 	public final int myloc;
 	private int myPC;
-	public final Expression left, right;
+	public final L left;
+	public final R right;
 
-	public Expression(int loc, Expression l, Expression r) {
+	public Expression(int loc, L l, R r) {
 		myloc = loc + 1;
 		left = l;
 		right = r;

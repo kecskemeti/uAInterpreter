@@ -106,6 +106,7 @@ public class GUI {
 						}
 					}
 				} while(mainThread.isAlive());
+				mainWindow.setTitle(mainWindow.getTitle() + " - Terminated");
 			}
 		}.start();
 
@@ -120,7 +121,6 @@ public class GUI {
 		}
 		runner.initialize();
 		runner.run();
-		mainWindow.setTitle(mainWindow.getTitle() + " - Terminated");
 	}
 
 }

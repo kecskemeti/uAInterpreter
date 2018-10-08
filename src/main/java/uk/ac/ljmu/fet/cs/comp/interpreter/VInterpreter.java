@@ -48,10 +48,10 @@ public class VInterpreter implements Visitor {
 		Expression ex = UAMachine.theProgram.get(UAMachine.programCounter++);
 		try {
 			ex.accept(this);
+			return UAMachine.finalProgramAddress != UAMachine.programCounter;
 		} catch (Throwable t) {
 			throw new Error(t.getMessage() + " at line " + ex.myloc, t);
 		}
-		return UAMachine.finalProgramAddress != UAMachine.programCounter;
 	}
 
 	// Erroneous behaviour
@@ -95,17 +95,17 @@ public class VInterpreter implements Visitor {
 	// Arithmetics
 	@Override
 	public void visit(ADOperation e) {
-		doArithmetic(e, ArtOp.AD);
+		doArithmetic(e);
 	}
 
 	@Override
 	public void visit(DVOperation e) {
-		doArithmetic(e, ArtOp.DV);
+		doArithmetic(e);
 	}
 
 	@Override
 	public void visit(MLOperation e) {
-		doArithmetic(e, ArtOp.ML);
+		doArithmetic(e);
 	}
 
 	// Goto/Jump constructs
@@ -145,15 +145,15 @@ public class VInterpreter implements Visitor {
 	}
 
 	// Internal helpers
-	private void doArithmetic(Operation e, ArtOp op) {
+	private void doArithmetic(ArithmeticOperation e) {
 		e.left.accept(ir);
 		int leftVal = ir.getResolvedValue();
 		e.right.accept(ir);
-		setReg(e, op.realOP(ir.getResolvedValue(), leftVal));
+		setReg(e, e.doArithm(ir.getResolvedValue(), leftVal));
 	}
 
 	private void setReg(Operation e, int val) {
-		UAMachine.regValues[((Register) e.right).containedValue.ordinal()] = val;
+		UAMachine.regValues[e.right.containedValue.ordinal()] = val;
 	}
 
 	private void uncJump(Operation e) {
