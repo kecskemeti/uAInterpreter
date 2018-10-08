@@ -93,8 +93,8 @@ public class Debugger implements UARunner {
 	}
 
 	private void updateView() {
-		currLineNo.setText("" + UAMachine.programCounter);
 		Expression ex = UAMachine.theProgram.get(UAMachine.programCounter);
+		currLineNo.setText("" + ex.myloc);
 		String liText = "";
 		String clText = "N/A";
 		if (ex != null) {
