@@ -25,7 +25,7 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public abstract class Operation extends Expression<Expression,Register> {
+public abstract class Operation extends Expression<Expression, Register> {
 	public static enum AttKind {
 		C, R
 	}
@@ -48,7 +48,8 @@ public abstract class Operation extends Expression<Expression,Register> {
 			IllegalArgumentException, InvocationTargetException {
 		@SuppressWarnings("unchecked")
 		Class<? extends Operation>[] ops = new Class[] { ADOperation.class, DVOperation.class, JMOperation.class,
-				JZOperation.class, LDOperation.class, MLOperation.class, MVOperation.class, STOperation.class };
+				JZOperation.class, LDOperation.class, MLOperation.class, MVOperation.class, STOperation.class,
+				SBOperation.class };
 		for (Class<? extends Operation> op : ops) {
 			if (op.getSimpleName().startsWith(opN)) {
 				Constructor<? extends Operation> opConst = op.getConstructor(int.class, Expression.class,

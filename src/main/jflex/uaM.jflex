@@ -83,7 +83,7 @@ InputCharacter    = [^\r\n]
 InLineWhiteSpace  = [ \t\f]
 WhiteSpace        = {LineTerminator} | {InLineWhiteSpace}
 
-InstructionID = "LD" | "ST" | "JZ" | "JM" | "AD" | "ML" | "DV" | "MV"
+InstructionID = "LD" | "ST" | "JZ" | "JM" | "AD" | "ML" | "DV" | "MV" | "SB"
 InputType = [CR]
 Register = [ABCD]
 Integer = "-"?[:digit:]+

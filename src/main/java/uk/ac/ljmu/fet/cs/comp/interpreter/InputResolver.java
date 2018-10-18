@@ -36,6 +36,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.MLOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.MVOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.NumberConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.SBOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
@@ -52,6 +53,12 @@ public class InputResolver implements Visitor {
 		throwError(e);
 	}
 
+	@Override
+	public void visit(SBOperation e) {
+		throwError(e);
+	}
+
+	
 	@Override
 	public void visit(CodeLabel e) {
 		throwError(e);
