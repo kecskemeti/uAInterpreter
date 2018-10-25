@@ -41,9 +41,11 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.SBOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public class SyntaxCheck implements Visitor {
 	private int constantIndex = UAMachine.constants;
+	private int variableIndex = UAMachine.constants-1000;
 
 	@Override
 	public void visit(Identifier e) {
@@ -61,6 +63,11 @@ public class SyntaxCheck implements Visitor {
 		idDef(e);
 	}
 
+	@Override
+	public void visit(VariableDefinition e) {
+		idDef(e);
+	}
+	
 	@Override
 	public void visit(StringConstant e) {
 		idDef(e);
@@ -95,8 +102,12 @@ public class SyntaxCheck implements Visitor {
 			e.left.setMemLoc(constantIndex);
 			e.right.accept(this);
 		} else {
+			if(e instanceof VariableDefinition) {
+				e.left.setMemLoc(variableIndex++);
+			} else {
 			// Code labels
-			e.left.setMemLoc(e.left.getPC());
+				e.left.setMemLoc(e.left.getPC());
+			}
 		}
 	}
 

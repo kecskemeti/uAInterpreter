@@ -40,6 +40,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.SBOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public class InputResolver implements Visitor {
 	private int resolvedValue;
@@ -109,6 +110,11 @@ public class InputResolver implements Visitor {
 		throwError(e);
 	}
 
+	@Override
+	public void visit(VariableDefinition e) {
+		throwError(e);
+	}
+	
 	@Override
 	public void visit(Register e) {
 		resolvedValue = UAMachine.regValues[e.containedValue.ordinal()];

@@ -38,6 +38,7 @@ import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.SBOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.STOperation;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringConstant;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.StringValue;
+import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.VariableDefinition;
 
 public interface Visitor {
 	void visit(ADOperation e);
@@ -64,6 +65,8 @@ public interface Visitor {
 
 	void visit(NumberConstant e);
 
+	void visit(VariableDefinition e);
+	
 	void visit(Register e);
 
 	void visit(STOperation e);
