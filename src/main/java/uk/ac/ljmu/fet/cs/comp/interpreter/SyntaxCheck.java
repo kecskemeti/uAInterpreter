@@ -82,65 +82,61 @@ public class SyntaxCheck implements Visitor {
 		}
 	}
 
-	private void idDef(Expression e) {
-		if (e.left instanceof Identifier) {
-			Identifier i = (Identifier) e.left;
-			if (SymbolTable.globalTable.containsKey(i.containedValue)) {
-				throw new Error("Identifier name '" + i.containedValue + "' already in use current use at line "
-						+ i.myloc + " previous use at line " + SymbolTable.globalTable.get(i.containedValue).myloc);
-			}
-			SymbolTable.globalTable.put(i.containedValue, e);
-			if (e.right != null) {
-				// Constant mapping
-				i.setMemLoc(constantIndex);
-				e.right.accept(this);
-			} else {
-				// Code labels
-				i.setMemLoc(e.left.myloc);
-			}
+	private void idDef(Expression<Identifier, Expression> e) {
+		String idStr = e.left.containedValue;
+		Expression pr=SymbolTable.globalTable.put(idStr,e);
+		if (pr!=null) {
+			throw new Error("Identifier name '" + idStr + "' already in use current use at line " + e.left.myloc
+					+ " previous use at line " + pr.myloc);
+		}
+		if (e.right != null) {
+			// Constant mapping
+			e.left.setMemLoc(constantIndex);
+			e.right.accept(this);
 		} else {
-			throw new Error("Non-identifier used in place of an id " + e.myloc);
+			// Code labels
+			e.left.setMemLoc(e.left.getPC());
 		}
 	}
 
 	@Override
 	public void visit(ADOperation e) {
-		visitOp(e,true);
+		visitOp(e, true);
 	}
 
 	@Override
 	public void visit(DVOperation e) {
-		visitOp(e,true);
+		visitOp(e, true);
 	}
 
 	@Override
 	public void visit(JMOperation e) {
-		visitOp(e,false);
+		visitOp(e, false);
 	}
 
 	@Override
 	public void visit(JZOperation e) {
-		visitOp(e,true);
+		visitOp(e, true);
 	}
 
 	@Override
 	public void visit(LDOperation e) {
-		visitOp(e,true);
+		visitOp(e, true);
 	}
 
 	@Override
 	public void visit(MLOperation e) {
-		visitOp(e,true);
+		visitOp(e, true);
 	}
 
 	@Override
 	public void visit(MVOperation e) {
-		visitOp(e,true);
+		visitOp(e, true);
 	}
 
 	@Override
 	public void visit(STOperation e) {
-		visitOp(e,true);
+		visitOp(e, true);
 	}
 
 	private void visitOp(Operation e, boolean doRightCheck) {
@@ -155,15 +151,15 @@ public class SyntaxCheck implements Visitor {
 		if (invalidLeftExpr) {
 			throw new Error("Input parameter mismatch at line " + e.myloc);
 		}
-		if(doRightCheck) {
-			if(e.right==null) {
+		if (doRightCheck) {
+			if (e.right == null) {
 				throw new Error("Output parameter missing at line " + e.myloc);
 			}
-			if(!(e.right instanceof Register)) {
+			if (!(e.right instanceof Register)) {
 				throw new Error("Output parameter is not a register at line " + e.myloc);
 			}
 		} else {
-			if(e.right!=null) {
+			if (e.right != null) {
 				throw new Error("Unexpected output parameter at line " + e.myloc);
 			}
 		}

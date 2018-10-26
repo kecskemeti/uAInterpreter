@@ -22,8 +22,7 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter;
 
-import java.util.EnumMap;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Expression;
 import uk.ac.ljmu.fet.cs.comp.interpreter.tokens.Register;
@@ -37,20 +36,9 @@ public class UAMachine {
 	public static final int constants = 30000;
 	public static int programCounter = -1;
 	public static int finalProgramAddress = -1;
-	public static HashMap<Integer, Expression> theProgram = new HashMap<>();
-	public static EnumMap<Register.RegType, Integer> regValues = new EnumMap<>(Register.RegType.class);
+	public static ArrayList<Expression> theProgram = new ArrayList<>();
+	public static int[] regValues = new int[Register.RegType.values().length];
 	private static int[] memory = new int[totalMemory];
-
-	static {
-		for (Register.RegType r : Register.RegType.values()) {
-			regValues.put(r, 0);
-		}
-	}
-
-	public static void advancePCToNextNonEmpty() {
-		while (theProgram.get(programCounter) == null)
-			programCounter++;
-	}
 
 	public static int getLocation(int loc) {
 		if (totalMemory <= loc || 0 > loc) {
@@ -60,10 +48,11 @@ public class UAMachine {
 	}
 
 	public static void setLocation(int loc, int val) {
-		if ((loc > keyboard && loc < variables) || loc >= constants) {
+		if ((loc >= variables && loc < constants) || loc <= keyboard) {
+			memory[loc] = val;
+		} else {
 			throw new Error("Illegal memory write operation to location (" + loc + ")");
 		}
-		memory[loc] = val;
 	}
 
 	public static void setKeyboard(int val) {

@@ -25,14 +25,14 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-public abstract class Operation extends Expression {
+public abstract class Operation extends Expression<Expression,Register> {
 	public static enum AttKind {
 		C, R
 	}
 
 	public final AttKind kind;
 
-	public Operation(int loc, Expression l, Expression r, AttKind kind) {
+	public Operation(int loc, Expression l, Register r, AttKind kind) {
 		super(loc, l, r);
 		this.kind = kind;
 	}
@@ -43,7 +43,7 @@ public abstract class Operation extends Expression {
 				+ (right == null ? "" : "," + right.toOriginalUA());
 	}
 
-	public static Operation opFactory(int loc, String opN, Expression l, Expression r, AttKind kind)
+	public static Operation opFactory(int loc, String opN, Expression l, Register r, AttKind kind)
 			throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
 		@SuppressWarnings("unchecked")
@@ -52,7 +52,7 @@ public abstract class Operation extends Expression {
 		for (Class<? extends Operation> op : ops) {
 			if (op.getSimpleName().startsWith(opN)) {
 				Constructor<? extends Operation> opConst = op.getConstructor(int.class, Expression.class,
-						Expression.class, AttKind.class);
+						Register.class, AttKind.class);
 				return opConst.newInstance(loc, l, r, kind);
 			}
 		}

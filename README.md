@@ -1,2 +1,2 @@
-# uAInterpreter
-An implementation of the uA language and a few sample programs
+# μAInterpreter
+An implementation of the μA language and a few sample programs

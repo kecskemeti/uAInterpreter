@@ -24,21 +24,35 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visited;
 
-public abstract class Expression implements Visited {
+public abstract class Expression<L extends Expression, R extends Expression> implements Visited {
 	public final int myloc;
-	public final Expression left, right;
+	private int myPC;
+	public final L left;
+	public final R right;
 
-	public Expression(int loc, Expression l, Expression r) {
+	public Expression(int loc, L l, R r) {
 		myloc = loc + 1;
 		left = l;
 		right = r;
 	}
-	
+
+	public void setPC(int pc) {
+		myPC = pc;
+		if (left != null)
+			left.setPC(pc);
+		if (right != null)
+			right.setPC(pc);
+	}
+
+	public int getPC() {
+		return myPC;
+	}
+
 	public abstract String toOriginalUA();
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + "(loc: " +myloc + " L: "+(left == null ? "-" : left) + "," + " R: "+(right == null ? "-" : right)
-				+ ")";
+		return this.getClass().getSimpleName() + "(loc: " + myloc + " L: " + (left == null ? "-" : left) + "," + " R: "
+				+ (right == null ? "-" : right) + ")";
 	}
 }
