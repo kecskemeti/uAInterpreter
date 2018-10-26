@@ -24,8 +24,8 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visitor;
 
-public class CodeLabel extends Expression {
-	public CodeLabel(int loc, Expression l, Expression r) {
+public class CodeLabel extends Expression<Identifier, Expression> {
+	public CodeLabel(int loc, Identifier l, Expression r) {
 		super(loc, l, r);
 	}
 

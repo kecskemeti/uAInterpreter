@@ -25,7 +25,7 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visitor;
 
 public class JZOperation extends Operation {
-	public JZOperation(int loc, Expression l, Expression r, AttKind k) {
+	public JZOperation(int loc, Expression l, Register r, AttKind k) {
 		super(loc, l, r, k);
 	}
 	@Override

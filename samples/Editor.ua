@@ -23,9 +23,6 @@
 
 ; A simple text editor
 ; Behaviour:
-;  - due to limitations of the "ua machine" you cannot have repeated keystrokes
-;       of the same key. To achieve the effect, use a non-visible key in between
-;       two keystrokes that were intended to be repeated 
 ;  - shows the cursor by alternating the cursor chars and the current
 ;       content of the text at the cursor's location
 ;  - arrow keys allow moving around the text
@@ -53,8 +50,10 @@
 ; 25003 register D is saved here by functions
 
 ; Relevant key codes:
+; Backspace: 8
 ; Enter: 10
 ; ESC: 27
+; Space: 32
 ; Left arrow: 37
 ; Up arrow: 38
 ; Right arrow: 39
@@ -88,23 +87,63 @@ MVC cursorShape,A
 STC 20003,A
 MVC 10000,A
 STC 20000,A
-MVC 0,A
+; Setup of the keyboard
+MVC -1,A
+STC 2000,A
 
 mainLoop:
-MVR A,B
-; A has the new value read from the keyboard, we must preserve A until the start of the next main loop
 LDC 2000,A
 ; CHECK IF IT IS DIFFERENT THAN BEFORE
-MVR A,C
-MLC -1,C
-ADR C,B
-JZC change,B
+ADC 1,A
+JZC change,A
 JMC visualiseCursor
 change:
+ADC -1,A
+; Making sure the next scan detects the next key
+MVC -1,B
+STC 2000,B
+; Restoring the scanned value to the one before the jump
 MVR A,B
-ADC -10,B
+ADC -8,B
+JZC notBackSpace, B
+
+; Handling backspace
+; Overwriting the cursor's previous location with a space
+LDC 20001,B
+MVR B,A
+DVC 80,A
+MLC -80,A
+ADR B,A
+JZC bsMiddleOfLine, A
+JMC visualiseCursor
+bsMiddleOfLine:
+; We were not in front, we need to actually move it back by one
+; Clearing the current cursor location
+MVC 32,C
+STR B,C
+; Moving the cursor back by one
+ADC -1,B
+; Remembering the cursor's new spot
+STC 20001,B
+LDC 20000,A
+; Calculating the memory buffer address
+ADR B,A
+; Remove the content from buffer & screen
+STR A,C
+STR B,C
+JMC visualiseCursor
+
+notBackSpace:
+ADC -2,B
 JZC notEnter, B
+
 ; Enter was hit
+; Load what was under the cursor, make sure we leave that behind
+LDC 20001,B
+LDC 20000,A
+ADR B,A
+LDR A,A
+STR B,A
 ; Query our location
 LDC 20001, B
 DVC 80,B
@@ -113,13 +152,18 @@ ADC 1,B
 MLC 80,B
 STC 20001, B
 JMC checkLocationValidity
+
+
 notEnter:
 ADC -17,B
 JZC notESC,B
+; Handling exit request by ESC
 JMC exit
+
 notESC:
 ADC -10,B
 JZC notLeftArrow,B
+
 ; Left arrow was hit
 MVC leftArrow,D
 JMC bufferedTocursor
@@ -141,6 +185,7 @@ JMC visualiseCursor
 notLeftArrow:
 ADC -1,B
 JZC notUpArrow,B
+
 ; Up arrow was hit
 MVC upArrow,D
 JMC bufferedTocursor
@@ -152,6 +197,7 @@ JMC checkLocationValidity
 notUpArrow:
 ADC -1,B
 JZC notRightArrow,B
+
 ; Right arrow was hit
 MVC rightArrow,D
 JMC bufferedTocursor
@@ -172,6 +218,7 @@ JMC visualiseCursor
 notRightArrow:
 ADC -1,B
 JZC notDownArrow,B
+
 ; Down arrow was hit
 MVC downArrow,D
 JMC bufferedTocursor
@@ -267,7 +314,7 @@ ADC 80,B
 ; Store the updated
 STC 20000,B
 ; Did we reach out of the buffer?
-ADC -20000, B
+ADC -18080, B
 JZC repaintbuffer,B
 ; Yes we did, so let's reset the buffer to the bottom
 STC 20000,C

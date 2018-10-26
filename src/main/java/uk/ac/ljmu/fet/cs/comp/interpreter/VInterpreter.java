@@ -45,19 +45,13 @@ public class VInterpreter implements Visitor {
 	private InputResolver ir = new InputResolver();
 
 	public boolean interpret() {
-		int pcBefore = UAMachine.programCounter;
-		Expression ex = UAMachine.theProgram.get(pcBefore);
+		Expression ex = UAMachine.theProgram.get(UAMachine.programCounter++);
 		try {
 			ex.accept(this);
-			if (pcBefore == UAMachine.programCounter) {
-				// There was no jump statement, we need to advance the pc ourselves
-				UAMachine.programCounter++;
-			}
+			return UAMachine.finalProgramAddress != UAMachine.programCounter;
 		} catch (Throwable t) {
 			throw new Error(t.getMessage() + " at line " + ex.myloc, t);
 		}
-		UAMachine.advancePCToNextNonEmpty();
-		return UAMachine.finalProgramAddress != UAMachine.programCounter;
 	}
 
 	// Erroneous behaviour
@@ -101,17 +95,17 @@ public class VInterpreter implements Visitor {
 	// Arithmetics
 	@Override
 	public void visit(ADOperation e) {
-		doArithmetic(e, ArtOp.AD);
+		doArithmetic(e);
 	}
 
 	@Override
 	public void visit(DVOperation e) {
-		doArithmetic(e, ArtOp.DV);
+		doArithmetic(e);
 	}
 
 	@Override
 	public void visit(MLOperation e) {
-		doArithmetic(e, ArtOp.ML);
+		doArithmetic(e);
 	}
 
 	// Goto/Jump constructs
@@ -151,15 +145,15 @@ public class VInterpreter implements Visitor {
 	}
 
 	// Internal helpers
-	private void doArithmetic(Operation e, ArtOp op) {
+	private void doArithmetic(ArithmeticOperation e) {
 		e.left.accept(ir);
 		int leftVal = ir.getResolvedValue();
 		e.right.accept(ir);
-		setReg(e, op.realOP(ir.getResolvedValue(), leftVal));
+		setReg(e, e.doArithm(ir.getResolvedValue(), leftVal));
 	}
 
 	private void setReg(Operation e, int val) {
-		UAMachine.regValues.put(((Register) e.right).containedValue, val);
+		UAMachine.regValues[e.right.containedValue.ordinal()] = val;
 	}
 
 	private void uncJump(Operation e) {
