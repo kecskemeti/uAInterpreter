@@ -36,6 +36,6 @@ public class StringConstant extends Expression {
 
 	@Override
 	public String toOriginalUA() {
-		return "CONST " + left + " " + right;
+		return "CONST " + left.toOriginalUA() + " " + right.toOriginalUA();
 	}
 }

@@ -157,7 +157,7 @@ Comment = {InLineWhiteSpace}* ";" {InputCharacter}* {LineTerminator}?
     <VARDEF> {
     	{Identifier}			 {  saveExpr(new Identifier(yyline,yytext())); doLeft=false; }
     	{InLineWhiteSpace}		 { }
-    	{LineTerminator}		 {  VariableDefinition vd=new VariableDefinition(yyline, left);
+    	{LineTerminator}		 {  VariableDefinition vd=new VariableDefinition(yyline, (Identifier)left);
     								switchToInitial();
     							    return vd; 
     							 }

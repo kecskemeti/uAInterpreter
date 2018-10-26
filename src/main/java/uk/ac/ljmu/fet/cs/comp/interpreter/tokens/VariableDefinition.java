@@ -24,8 +24,8 @@ package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visitor;
 
-public class VariableDefinition extends Expression {
-	public VariableDefinition(int loc, Expression l) {
+public class VariableDefinition extends Expression<Identifier, Expression> {
+	public VariableDefinition(int loc, Identifier l) {
 		super(loc, l, null);
 	}
 
@@ -36,6 +36,6 @@ public class VariableDefinition extends Expression {
 
 	@Override
 	public String toOriginalUA() {
-		return "VAR "+left;
+		return "; Variable " + left.containedValue + " was mapped to address " + left.getMemLoc();
 	}
 }

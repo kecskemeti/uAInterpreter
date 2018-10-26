@@ -36,6 +36,6 @@ public class NumberConstant extends Expression {
 
 	@Override
 	public String toOriginalUA() {
-		return "CONNR "+left+" "+right;
+		return "CONNR "+left.toOriginalUA()+" "+right.toOriginalUA();
 	}
 }

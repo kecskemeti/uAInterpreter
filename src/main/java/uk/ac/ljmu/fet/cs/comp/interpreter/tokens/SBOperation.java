@@ -39,4 +39,16 @@ public class SBOperation extends ArithmeticOperation {
 	public int doArithm(int a, int b) {
 		return a - b;
 	}
+
+	@Override
+	public String toOriginalUA() {
+		if (kind.equals(Operation.AttKind.C)) {
+			// Constants only need a - in front
+			return "ADC -" + left.toOriginalUA() + "," + right.toOriginalUA();
+		} else {
+			return "MLC -1," + left.toOriginalUA() + "\n"
+
+					+ "ADR " + left.toOriginalUA() + "," + right.toOriginalUA();
+		}
+	}
 }

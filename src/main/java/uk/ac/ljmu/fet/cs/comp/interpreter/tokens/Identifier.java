@@ -22,6 +22,7 @@
  */
 package uk.ac.ljmu.fet.cs.comp.interpreter.tokens;
 
+import uk.ac.ljmu.fet.cs.comp.interpreter.UAMachine;
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.Visitor;
 
 public class Identifier extends ContainerExpression<String> {
@@ -29,6 +30,11 @@ public class Identifier extends ContainerExpression<String> {
 
 	public Identifier(int loc, String value) {
 		super(loc, null, null, value);
+	}
+
+	@Override
+	public String toOriginalUA() {
+		return memLoc >= UAMachine.constants || memLoc < UAMachine.variables ? super.toOriginalUA() : "" + memLoc;
 	}
 
 	@Override
