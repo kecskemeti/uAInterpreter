@@ -102,9 +102,10 @@ public class GUI {
 					}
 					for (int i = 0; i < UAMachine.screenHeight; i++) {
 						for (int j = 0; j < UAMachine.screenWidth; j++) {
-							screen[i][j].setText("" + (char) UAMachine.getLocation(i * 80 + j));
+							screen[i][j].setText(Character.toString(UAMachine.getLocation(i * 80 + j)));
 						}
 					}
+					mainWindow.repaint();
 				} while(mainThread.isAlive());
 				mainWindow.setTitle(mainWindow.getTitle() + " - Terminated");
 			}
@@ -115,7 +116,7 @@ public class GUI {
 		// Running the parsed program
 		UARunner runner=new RegularRunner();
 		if(args.length>1) {
-			if(args[1].equals("DEBUG")) {
+			if(args[1].equalsIgnoreCase("DEBUG")) {
 				runner=new Debugger();
 			}
 		}
