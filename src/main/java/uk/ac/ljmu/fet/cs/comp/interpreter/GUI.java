@@ -35,9 +35,20 @@ import javax.swing.JLabel;
 import uk.ac.ljmu.fet.cs.comp.interpreter.interfaces.UARunner;
 
 public class GUI {
+	private static char mu = 956;
 	private static JLabel[][] screen = new JLabel[UAMachine.screenHeight][UAMachine.screenWidth];
+	private static JFrame mainWindow = new JFrame("Visualiser for the " + mu + "A interpreter");
 	private static int pc = 0;
 	public static Thread mainThread;
+
+	private static void updateUAVisualiser() {
+		for (int i = 0; i < UAMachine.screenHeight; i++) {
+			for (int j = 0; j < UAMachine.screenWidth; j++) {
+				screen[i][j].setText(Character.toString((char) UAMachine.getLocation(i * 80 + j)));
+			}
+		}
+		mainWindow.repaint();
+	}
 
 	public static void errorAndExit(String msg) {
 		System.err.println("Fatal error at line " + (pc + 1));
@@ -56,8 +67,6 @@ public class GUI {
 		// Parsing complete. Here comes the GUI
 
 		mainThread = Thread.currentThread();
-		char c = 956;
-		JFrame mainWindow = new JFrame("Visualiser for the " + c + "A interpreter");
 		Container cp = mainWindow.getContentPane();
 		cp.setLayout(new GridLayout(UAMachine.screenHeight, UAMachine.screenWidth, 0, 0));
 		for (int i = 0; i < UAMachine.screenHeight; i++) {
@@ -100,14 +109,10 @@ public class GUI {
 					} catch (InterruptedException iex) {
 						// ignore
 					}
-					for (int i = 0; i < UAMachine.screenHeight; i++) {
-						for (int j = 0; j < UAMachine.screenWidth; j++) {
-							screen[i][j].setText(Character.toString((char) UAMachine.getLocation(i * 80 + j)));
-						}
-					}
-					mainWindow.repaint();
+					updateUAVisualiser();
 				} while (mainThread.isAlive());
 				mainWindow.setTitle(mainWindow.getTitle() + " - Terminated");
+				updateUAVisualiser();
 			}
 		}.start();
 
