@@ -154,18 +154,16 @@ public class Debugger implements UARunner {
 	public void run() {
 		do {
 			boolean doBreakPoint = false;
+			Expression currentInstruction = UAMachine.theProgram.get(UAMachine.programCounter);
 			if (numLinesAllowed == 0) {
 				numLinesAllowed = -1;
 				doBreakPoint = true;
-			} else if (UAMachine.programCounter == Integer.parseInt(lineNoBR.getText().trim())) {
+			} else if (currentInstruction.myloc == Integer.parseInt(lineNoBR.getText().trim())) {
 				doBreakPoint = true;
-			} else {
-				Expression ex = UAMachine.theProgram.get(UAMachine.programCounter);
-				if (ex instanceof CodeLabel) {
-					String clabel = ((CodeLabel) ex).left.toOriginalUA();
-					if (clabel.equals(labelBR.getText().trim())) {
-						doBreakPoint = true;
-					}
+			} else if (currentInstruction instanceof CodeLabel) {
+				String clabel = ((CodeLabel) currentInstruction).left.containedValue;
+				if (clabel.equals(labelBR.getText().trim())) {
+					doBreakPoint = true;
 				}
 			}
 			if (doBreakPoint) {
